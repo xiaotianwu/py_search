@@ -1,4 +1,6 @@
-﻿import re
+﻿#!/usr/bin/python
+
+import re
 import Queue
 import urllib
 import threading
@@ -11,9 +13,7 @@ class ExtendedHTMLParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         for attr in attrs:
-            if len(attr) == 2 and \
-               attr[0] == 'href' and \
-               self.http_regex.match(attr[1]):
+            if len(attr) == 2 and attr[0] == 'href' and self.http_regex.match(attr[1]):
                 print "href:", attr[1]
                 self.fanout_link.append(attr[1])
 
