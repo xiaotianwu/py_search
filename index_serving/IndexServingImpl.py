@@ -7,9 +7,9 @@ from ttypes import IndexServingStatus
 from ttypes import IndexServingProperty
 
 class IndexServingHandler(IndexServing.Iface):
-    def Ping(self):
+    def ping(self):
         print "incoming ping"
         return IndexServingProperty()
 
-    def Search(self, termIds):
+    def search(self, termIds):
         pass

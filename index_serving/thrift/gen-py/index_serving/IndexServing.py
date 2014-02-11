@@ -18,10 +18,10 @@ except:
 
 
 class Iface:
-  def Ping(self):
+  def ping(self):
     pass
 
-  def Search(self, termIds):
+  def search(self, termIds):
     """
     Parameters:
      - termIds
@@ -36,68 +36,68 @@ class Client(Iface):
       self._oprot = oprot
     self._seqid = 0
 
-  def Ping(self):
-    self.send_Ping()
-    return self.recv_Ping()
+  def ping(self):
+    self.send_ping()
+    return self.recv_ping()
 
-  def send_Ping(self):
-    self._oprot.writeMessageBegin('Ping', TMessageType.CALL, self._seqid)
-    args = Ping_args()
+  def send_ping(self):
+    self._oprot.writeMessageBegin('ping', TMessageType.CALL, self._seqid)
+    args = ping_args()
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
 
-  def recv_Ping(self):
+  def recv_ping(self):
     (fname, mtype, rseqid) = self._iprot.readMessageBegin()
     if mtype == TMessageType.EXCEPTION:
       x = TApplicationException()
       x.read(self._iprot)
       self._iprot.readMessageEnd()
       raise x
-    result = Ping_result()
+    result = ping_result()
     result.read(self._iprot)
     self._iprot.readMessageEnd()
     if result.success is not None:
       return result.success
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "Ping failed: unknown result");
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "ping failed: unknown result");
 
-  def Search(self, termIds):
+  def search(self, termIds):
     """
     Parameters:
      - termIds
     """
-    self.send_Search(termIds)
-    return self.recv_Search()
+    self.send_search(termIds)
+    return self.recv_search()
 
-  def send_Search(self, termIds):
-    self._oprot.writeMessageBegin('Search', TMessageType.CALL, self._seqid)
-    args = Search_args()
+  def send_search(self, termIds):
+    self._oprot.writeMessageBegin('search', TMessageType.CALL, self._seqid)
+    args = search_args()
     args.termIds = termIds
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
 
-  def recv_Search(self):
+  def recv_search(self):
     (fname, mtype, rseqid) = self._iprot.readMessageBegin()
     if mtype == TMessageType.EXCEPTION:
       x = TApplicationException()
       x.read(self._iprot)
       self._iprot.readMessageEnd()
       raise x
-    result = Search_result()
+    result = search_result()
     result.read(self._iprot)
     self._iprot.readMessageEnd()
     if result.success is not None:
       return result.success
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "Search failed: unknown result");
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "search failed: unknown result");
 
 
 class Processor(Iface, TProcessor):
   def __init__(self, handler):
     self._handler = handler
     self._processMap = {}
-    self._processMap["Ping"] = Processor.process_Ping
-    self._processMap["Search"] = Processor.process_Search
+    self._processMap["ping"] = Processor.process_ping
+    self._processMap["search"] = Processor.process_search
 
   def process(self, iprot, oprot):
     (name, type, seqid) = iprot.readMessageBegin()
@@ -114,24 +114,24 @@ class Processor(Iface, TProcessor):
       self._processMap[name](self, seqid, iprot, oprot)
     return True
 
-  def process_Ping(self, seqid, iprot, oprot):
-    args = Ping_args()
+  def process_ping(self, seqid, iprot, oprot):
+    args = ping_args()
     args.read(iprot)
     iprot.readMessageEnd()
-    result = Ping_result()
-    result.success = self._handler.Ping()
-    oprot.writeMessageBegin("Ping", TMessageType.REPLY, seqid)
+    result = ping_result()
+    result.success = self._handler.ping()
+    oprot.writeMessageBegin("ping", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
-  def process_Search(self, seqid, iprot, oprot):
-    args = Search_args()
+  def process_search(self, seqid, iprot, oprot):
+    args = search_args()
     args.read(iprot)
     iprot.readMessageEnd()
-    result = Search_result()
-    result.success = self._handler.Search(args.termIds)
-    oprot.writeMessageBegin("Search", TMessageType.REPLY, seqid)
+    result = search_result()
+    result.success = self._handler.search(args.termIds)
+    oprot.writeMessageBegin("search", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -139,7 +139,7 @@ class Processor(Iface, TProcessor):
 
 # HELPER FUNCTIONS AND STRUCTURES
 
-class Ping_args:
+class ping_args:
 
   thrift_spec = (
   )
@@ -162,7 +162,7 @@ class Ping_args:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('Ping_args')
+    oprot.writeStructBegin('ping_args')
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -181,7 +181,7 @@ class Ping_args:
   def __ne__(self, other):
     return not (self == other)
 
-class Ping_result:
+class ping_result:
   """
   Attributes:
    - success
@@ -218,7 +218,7 @@ class Ping_result:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('Ping_result')
+    oprot.writeStructBegin('ping_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.STRUCT, 0)
       self.success.write(oprot)
@@ -241,7 +241,7 @@ class Ping_result:
   def __ne__(self, other):
     return not (self == other)
 
-class Search_args:
+class search_args:
   """
   Attributes:
    - termIds
@@ -283,7 +283,7 @@ class Search_args:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('Search_args')
+    oprot.writeStructBegin('search_args')
     if self.termIds is not None:
       oprot.writeFieldBegin('termIds', TType.LIST, 1)
       oprot.writeListBegin(TType.I32, len(self.termIds))
@@ -309,7 +309,7 @@ class Search_args:
   def __ne__(self, other):
     return not (self == other)
 
-class Search_result:
+class search_result:
   """
   Attributes:
    - success
@@ -350,7 +350,7 @@ class Search_result:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('Search_result')
+    oprot.writeStructBegin('search_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.I32, len(self.success))

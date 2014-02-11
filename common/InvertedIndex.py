@@ -2,24 +2,24 @@ class InvertedIndex:
     def __init__(self):
         pass
 
-    def Serialize():
+    def serialize():
         pass
 
-    def UnSerialize():
+    def unserialize():
         pass
 
 class InvertedIndexHandler:
     def __init__(self):
         pass
 
-    def Read():
+    def read():
         pass
 
-    def Write():
+    def write():
         pass
 
-    def Intersect():
+    def intersect():
         pass
 
-    def Union():
+    def union():
         pass

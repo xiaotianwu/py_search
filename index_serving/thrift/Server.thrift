@@ -18,9 +18,9 @@ struct IndexServingProperty {
 
 service IndexServing {
 
-   IndexServingProperty Ping(),
+   IndexServingProperty ping(),
 
    // Return match doc ids
-   list<i32> Search(1:list<i32> termIds)
+   list<i32> search(1:list<i32> termIds)
 
 }

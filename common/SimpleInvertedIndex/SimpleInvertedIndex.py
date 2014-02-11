@@ -15,8 +15,8 @@ class SimpleInvertedIndexHandler(InvertedIndexHandler):
     def __init__(self):
         pass
 
-    def Intersect(self, index1, index2):
+    def intersect(self, index1, index2):
         return list(set(index1.index) & set(index2.index))
 
-    def Union(self, index1, index2):
+    def union(self, index1, index2):
         return list(set(index1.index) | set(index2.index))

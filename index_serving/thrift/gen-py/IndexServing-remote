@@ -23,8 +23,8 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print 'Usage: ' + sys.argv[0] + ' [-h host[:port]] [-u url] [-f[ramed]] function [arg1 [arg2...]]'
   print ''
   print 'Functions:'
-  print '  IndexServingProperty Ping()'
-  print '   Search( termIds)'
+  print '  IndexServingProperty ping()'
+  print '   search( termIds)'
   print ''
   sys.exit(0)
 
@@ -76,17 +76,17 @@ protocol = TBinaryProtocol.TBinaryProtocol(transport)
 client = IndexServing.Client(protocol)
 transport.open()
 
-if cmd == 'Ping':
+if cmd == 'ping':
   if len(args) != 0:
-    print 'Ping requires 0 args'
+    print 'ping requires 0 args'
     sys.exit(1)
-  pp.pprint(client.Ping())
+  pp.pprint(client.ping())
 
-elif cmd == 'Search':
+elif cmd == 'search':
   if len(args) != 1:
-    print 'Search requires 1 args'
+    print 'search requires 1 args'
     sys.exit(1)
-  pp.pprint(client.Search(eval(args[0]),))
+  pp.pprint(client.search(eval(args[0]),))
 
 else:
   print 'Unrecognized method %s' % cmd
