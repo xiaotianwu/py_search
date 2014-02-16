@@ -20,28 +20,29 @@ class SimpleWordBreaker(WordBreaker):
         return sentence.split(' ')
 
 class TermExtractor(HTMLParser):
-    debug = False
-    term = set()
-    stopwords = set()
-    wordBreaker = SimpleWordBreaker()
-    
     __tagClassification = 'UNKNOWN'
     __textTagRegex = re.compile('(p)|(h[1-6])|(em)|(a)|(base)')
     __regularWordRegex = re.compile('[a-zA-Z]+')
 
+    _wordBreaker = SimpleWordBreaker()
+
+    debug = False
+    term = set()
+    stopwords = set()
+    
     def set_stopwords(self, stopwordsFile):
         languageSectionRegex = re.compile('\[[a-z][a-z]\-[a-z][a-z]\]')
         for line in open(stopwordsFile, 'r').readlines():
             if len(line) == 0 or line[0] == '#' or languageSectionRegex.match(line):
-                pass
+                continue
             self.stopwords.add(line.replace('\r', '').replace('\n', '').lower())
 
     def filter_word(self, word):
         word = word.strip().lower()
         if len(word) == 0 or word in self.stopwords:
-            return ''
+            return None
         elif not self.__regularWordRegex.match(word):
-            return ''
+            return None
         else:
             return word
 
@@ -62,20 +63,20 @@ class TermExtractor(HTMLParser):
             if self.debug == True:
                 print "Data =", data
             if self.__tagClassification in ('LINK', 'TEXT'):
-                words = self.wordBreaker.split(data);
+                words = self._wordBreaker.split(data);
                 for word in words:
                     word = self.filter_word(word)
-                    if word != '':
+                    if word != None:
                         self.term.add(word)
         except Exception, exception:
             print exception
 
 class LinkExtractor(HTMLParser):
-    debug = False
-    link = set()
-
     __tagClassification = 'UNKNOWN'
     __linkTagRegex = re.compile('(a)|(base)')
+
+    debug = False
+    link = set()
 
     def handle_starttag(self, tag, attrs):
         if self.__linkTagRegex.match(tag):
