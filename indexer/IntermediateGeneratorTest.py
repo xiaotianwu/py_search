@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
-from IntermediateGenerator import IntermediateGenerator
 import os
 import shutil
+
+from IntermediateGenerator import IntermediateGenerator
 
 path = './testdir/'
 if os.path.exists(path):

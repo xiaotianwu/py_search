@@ -62,7 +62,8 @@ class SimpleIndexWriter:
     def write(self, indexMap, indexFileName):
         assert isinstance(indexMap, SimpleIndex)
         # TODO add a MD5 to filename
-        indexMapToStore = pickle.dumps(indexMap, True) # use binary format
+        # use binary format
+        indexMapToStore = pickle.dumps(indexMap, True)
         indexFile = open(indexFileName, 'wb')
         indexFile.write(indexMapToStore)
         indexFile.close()

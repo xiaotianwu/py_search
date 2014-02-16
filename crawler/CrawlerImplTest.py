@@ -3,6 +3,7 @@
 import os
 import re
 import shutil
+
 from CrawlerImpl import UrlCrawler
 
 path = './test/'
@@ -19,7 +20,9 @@ assert crawler._filter_url('http://www.google.com') == False
 
 print '-------------------------'
 crawler = UrlCrawler(debug = True)
-crawler.init('http://oj.leetcode.com/discuss/questions', pagesLimit = 10, crawlInterval = 0.5, timeout = 5, urlFilterRegexCollection = urlRegex)
+crawler.init('http://oj.leetcode.com/discuss/questions', pagesLimit = 10,
+             crawlInterval = 0.5, timeout = 5,
+             urlFilterRegexCollection = urlRegex)
 crawler.run()
 
 print crawler._urlPages

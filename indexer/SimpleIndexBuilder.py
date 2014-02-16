@@ -1,16 +1,16 @@
 import copy
+import cPickle as pickle
 import sys
 sys.path.append('../common')
 sys.path.append('../common/SimpleIndex')
 
-import cPickle as pickle
+from Common import DirHandler
+from Common import UrlFileNameConverter
 from HtmlParser import TermExtractor
+from IntermediateGenerator import IntermediateGenerator as InGen
 from SimpleIndex import SimpleIndex
 from SimpleIndex import SimpleIndexReader
 from SimpleIndex import SimpleIndexWriter
-from Common import UrlFileNameConverter
-from Common import DirHandler
-from IntermediateGenerator import IntermediateGenerator
 
 class SimpleIndexBuilder:
     def __init__(self, debug = False):
@@ -21,7 +21,7 @@ class SimpleIndexBuilder:
 
     def init(self, mappingFile, stopwordsFile):
         self.__termExtractor.set_stopwords(stopwordsFile)
-        self.__docid_page_mapping = IntermediateGenerator.read_page_docid_mapping(mappingFile)
+        self.__docid_page_mapping = InGen.read_page_docid_mapping(mappingFile)
         print self.__docid_page_mapping
 
     def build_index(self, inputDir, outputName):
@@ -38,7 +38,8 @@ class SimpleIndexBuilder:
             pageAddress = UrlFileNameConverter.filename_to_url(pageFile)
             docid = self.__docid_page_mapping[pageAddress]
             if docid in self.__index:
-                print 'pageAddress =', pageAddress, 'docid =', docid, 'has been parsed, skip it'
+                print 'pageAddress =', pageAddress, 'docid =',\
+                      docid, 'has been parsed, skip it'
             else:
                 self.__index[docid] = copy.deepcopy(self.__termExtractor.term)
         except Exception, exception:

@@ -2,6 +2,7 @@ import re
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
+
 from HTMLParser import HTMLParser
 
 class WordBreaker:
@@ -33,7 +34,8 @@ class TermExtractor(HTMLParser):
     def set_stopwords(self, stopwordsFile):
         languageSectionRegex = re.compile('\[[a-z][a-z]\-[a-z][a-z]\]')
         for line in open(stopwordsFile, 'r').readlines():
-            if len(line) == 0 or line[0] == '#' or languageSectionRegex.match(line):
+            if (len(line) == 0 or line[0] == '#' or
+                   languageSectionRegex.match(line)):
                 continue
             self.stopwords.add(line.replace('\r', '').replace('\n', '').lower())
 

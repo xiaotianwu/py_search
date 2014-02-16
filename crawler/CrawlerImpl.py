@@ -1,15 +1,15 @@
-﻿import sys
+﻿import os
+import os.path
+import Queue
+import re
+import sys
+import threading
+import time
+import urllib2
 sys.path.append('../common')
+
 from HtmlParser import LinkExtractor
 from Common import UrlFileNameConverter
-
-import re
-import time
-import Queue
-import urllib2
-import threading
-import os
-import os.path
 
 # global chunk path
 pageChunkPath = '../page_chunk/'
@@ -25,7 +25,9 @@ class UrlCrawler:
 
     # _init only once in the program
     @staticmethod
-    def global_init(downloadPath = pageChunkPath, proxies = {}, parser = LinkExtractor()):
+    def global_init(downloadPath = pageChunkPath,
+                    proxies = {},
+                    parser = LinkExtractor()):
         UrlCrawler.__global_lock.acquire()
         if UrlCrawler.__global_init is True:
             UrlCrawler.__global_lock.release()
@@ -45,7 +47,9 @@ class UrlCrawler:
         self._init = False
         self._debug = debug
 
-    def init(self, seedUrl, pagesLimit, crawlInterval, timeout, urlFilterRegexCollection, parser = LinkExtractor()):
+    def init(self, seedUrl, pagesLimit,
+             crawlInterval, timeout, urlFilterRegexCollection,
+             parser = LinkExtractor()):
         self._seedUrl = seedUrl
         self._pagesLimit = pagesLimit
         self._crawlInterval = crawlInterval
@@ -123,7 +127,8 @@ class UrlCrawler:
         i = 0
         while urlQueue.empty() is not True and i < self._pagesLimit:
             url = urlQueue.get()
-            url = url.strip(' /?') # delete the unuseful character in head/tail
+            # delete the unuseful character in head/tail
+            url = url.strip(' /?')
             global urlChunk
             global urlChunkLock
             if url in urlChunk and url != self._seedUrl:
@@ -149,7 +154,8 @@ class UrlCrawler:
             pageFile.close()
             link = self._parse(page)
             for l in link:
-                if l is not None and l not in urlChunk and self._filter_url(l) is True:
+                if (l is not None and l not in urlChunk and
+                       self._filter_url(l) is True):
                     urlQueue.put(l)
             self._urlPages[url] = page
             i += 1
@@ -162,8 +168,10 @@ class UrlCrawlingThread(threading.Thread):
         threading.Thread.__init__(self)
         self._crawler = UrlCrawler(debug)
 
-    def init(self, seedUrl, pagesLimit = 10, crawlInterval = 0.01, timeout = 5, urlFilterRegexCollection = [re.compile('.*')]):
-        self._crawler.init(seedUrl, pagesLimit, crawlInterval, timeout, urlFilterRegexCollection)
+    def init(self, seedUrl, pagesLimit = 10, crawlInterval = 0.01,
+             timeout = 5, urlFilterRegexCollection = [re.compile('.*')]):
+        self._crawler.init(seedUrl, pagesLimit, crawlInterval,
+                           timeout, urlFilterRegexCollection)
 
     def run(self):
         self._crawler.run()
