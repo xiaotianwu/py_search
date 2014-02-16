@@ -4,8 +4,19 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 from HTMLParser import HTMLParser
 
+class WordBreaker:
+    type_name = "INTERFACE"
+
+    def __init__(self):
+        pass
+
+    def split(self, sentence):
+        pass
+
 # a simple wordbreaker based on space splitting, will be moved to common folder later
-class SimpleWordBreaker:
+class SimpleWordBreaker(WordBreaker):
+    type_name = "SIMPLE"
+
     def __init__(self):
         pass
 
@@ -69,3 +80,8 @@ class ExtendedHTMLParser(HTMLParser):
                 word = self.filter_word(word)
                 if word != '':
                     self.term.add(word)
+
+    def clear_parse_result(self):
+        self.link.clear()
+        self.term.clear()
+        

@@ -11,5 +11,6 @@ print 'stop words = ', parser.stopwords
 print 'link list =', parser.link
 print 'term list =', parser.term
 
+parser.clear_parse_result()
 parser.debug = True
 parser.feed(open('Sample.yahoo.html','r').read())

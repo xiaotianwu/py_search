@@ -1,55 +1,63 @@
-﻿import re
+﻿from HTMLParser import HTMLParser
+
 import Queue
 import urllib
 import threading
 from threading import Thread
 
 class UrlCrawler:
-    seedUrl = ''
-    crawlPagesLimit = 0
-    proxies = {}
     urlPages = {}
     
-    def __init__(self, seedUrl, crawlPagesLimit = 10, proxies = {}):
-        self.seedUrl = seedUrl
-        self.crawlPagesLimit = crawlPagesLimit
-        self.proxies = proxies
+    def __init__(self, seedUrl = '', parser = ExtendedHTMLParser(), crawlLimit = 10, proxies = {}, debug = False):
+        self.__seedUrl = seedUrl
+        self.__crawlLimit = crawlLimit
+        self.__proxies = proxies
+        self.__parser = parser
+        self.__debug = debug
 
-    def GetFanoutLink(self, page_text):
-        parser = ExtendedHTMLParser()
+    def print_params(self):
+        print 'seed url is:', self.__seedUrl
+        print 'crawl level limits:', self.__crawlLimit
+        print 'proxies:', self.__proxies
+        print 'stop words:', self.__parser.stopwords
+        print 'debug mode:', self.__debug
+        print 'wordbreaker type:', self.__parser.wordBreaker.type_name
+
+    def parse(self, page):
+        self.__parser.clear_parse_result()
         try:
-            parser.feed(page_text)
+            self.__parser.feed(page)
         except Exception, exception:
             print exception
-        return parser.fanoutLink
 
-    def GetPage(self, url):
+    def download(self, url):
         page = ''
         try:
-            urlObject = urllib.urlopen(url, proxies = self.proxies)
+            urlObject = urllib.urlopen(url, proxies = self.__proxies)
             page = urlObject.read()
             urlObject.close()
         except Exception,exception:
             print exception
         return page
 
-    def Run(self):
-        curUrl = self.seedUrl
+    def run(self):
+        curUrl = self.__seedUrl
         urlQueue = Queue.Queue()
         urlQueue.put(curUrl)
         i = 0
-        while urlQueue.empty() is not True and i < self.crawlPagesLimit:
+        while urlQueue.empty() is not True and i < self.__crawlLimit:
             url = urlQueue.get();
-            self.urlPages[url] = self.GetPage(url)
-            #print self.urlPages[url]
-            fanoutLink = self.GetFanoutLink(self.urlPages[url])
-            for link in fanoutLink:
-                urlQueue.put(link)
+            self.urlPages[url] = self.download(url)
+            if self.__debug is True:
+                print self.urlPages[url]
+            finishedParser = self.parse(self.urlPages[url])
+            for l in finishedParser.link:
+                urlQueue.put(l)
             i += 1
 
 class CrawlingThread(Thread):
-    crawler = UrlCrawler("http://www.qq.com", crawlPagesLimit = 1000)
+    crawler = UrlCrawler("http://www.qq.com", __crawlLimit = 1000)
     
     def run(self):
-        self.crawler.Run()
+        self.crawler.run()
 
