@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
-p = ExtendedHTMLParser()
-p.set_stopwords('StopWordsList.txt')
-crawler = UrlCrawler("http://www.yahoo.com", p, crawlLimit = 1000)
+from CrawlerImpl import UrlCrawler
+
+crawler = UrlCrawler(debug = True)
+crawler.init('http://www.yahoo.com')
 crawler.run()
 
+print crawler.urlPages

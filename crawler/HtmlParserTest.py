@@ -1,16 +1,18 @@
 #!/usr/bin/python
 
-from HtmlParser import ExtendedHTMLParser
+from HtmlParser import LinkExtractor
+from HtmlParser import TermExtractor
 
-parser = ExtendedHTMLParser();
-parser.set_stopwords('StopWordsList.txt')
+parser = LinkExtractor();
 parser.feed(open('Sample.yahoo.html','r').read())
 
-print '----------------Split---------------------'
-print 'stop words = ', parser.stopwords
 print 'link list =', parser.link
-print 'term list =', parser.term
+print '----------------Split---------------------'
 
-parser.clear_parse_result()
+parser = TermExtractor()
+parser.set_stopwords('StopWordsList.txt')
 parser.debug = True
 parser.feed(open('Sample.yahoo.html','r').read())
+
+print 'term list =', parser.term
+print 'stop words = ', parser.stopwords

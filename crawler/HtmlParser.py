@@ -23,16 +23,14 @@ class SimpleWordBreaker(WordBreaker):
     def split(self, sentence):
         return sentence.split(' ')
 
-class ExtendedHTMLParser(HTMLParser):
+class TermExtractor(HTMLParser):
     debug = False
-    link = set()
     term = set()
     stopwords = set()
     wordBreaker = SimpleWordBreaker()
-
+    
     __tagClassification = 'UNKNOWN'
-    __linkTagRegex = re.compile('(a)|(base)')
-    __textTagRegex = re.compile('(p)|(h[1-6])|(em)')
+    __textTagRegex = re.compile('(p)|(h[1-6])|(em)|(a)|(base)')
     __regularWordRegex = re.compile('[a-zA-Z]+')
 
     def set_stopwords(self, stopwordsFile):
@@ -41,6 +39,41 @@ class ExtendedHTMLParser(HTMLParser):
             if len(line) == 0 or line[0] == '#' or languageSectionRegex.match(line):
                 pass
             self.stopwords.add(line.replace('\r', '').replace('\n', '').lower())
+
+    def filter_word(self, word):
+        word = word.strip().lower()
+        if len(word) == 0 or word in self.stopwords:
+            return ''
+        elif not self.__regularWordRegex.match(word):
+            return ''
+        else:
+            return word
+
+    def handle_starttag(self, tag, attrs):
+        if self.__textTagRegex.match(tag):
+            self.__tagClassification = 'TEXT'
+            if self.debug == True:
+                print "Tag =", tag
+                print "Attrs =", attrs
+        else:
+            self.__tagClassification = 'UNKNOWN'
+
+    def handle_data(self, data):
+        if self.debug == True:
+            print "Data =", data
+        if self.__tagClassification in ('LINK', 'TEXT'):
+            words = self.wordBreaker.split(data);
+            for word in words:
+                word = self.filter_word(word)
+                if word != '':
+                    self.term.add(word)
+
+class LinkExtractor(HTMLParser):
+    debug = False
+    link = set()
+
+    __tagClassification = 'UNKNOWN'
+    __linkTagRegex = re.compile('(a)|(base)')
 
     def handle_starttag(self, tag, attrs):
         if self.__linkTagRegex.match(tag):
@@ -54,34 +87,5 @@ class ExtendedHTMLParser(HTMLParser):
                 if self.debug == True:
                     print "Tag =", tag
                     print "Attrs =", attrs
-        elif self.__textTagRegex.match(tag):
-            self.__tagClassification = 'TEXT'
-            if self.debug == True:
-                print "Tag =", tag
-                print "Attrs =", attrs
         else:
             self.__tagClassification = 'UNKNOWN'
-
-    def filter_word(self, word):
-        word = word.strip().lower()
-        if len(word) == 0 or word in self.stopwords:
-            return ''
-        elif not self.__regularWordRegex.match(word):
-            return ''
-        else:
-            return word
-
-    def handle_data(self, data):
-        if self.debug == True:
-            print "Data =", data
-        if self.__tagClassification in ('LINK', 'TEXT'):
-            words = self.wordBreaker.split(data);
-            for word in words:
-                word = self.filter_word(word)
-                if word != '':
-                    self.term.add(word)
-
-    def clear_parse_result(self):
-        self.link.clear()
-        self.term.clear()
-        
