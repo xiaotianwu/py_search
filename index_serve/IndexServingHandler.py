@@ -1,12 +1,11 @@
 import sys
 sys.path.append('thrift/gen-py/index_serving')
 sys.path.append('../common')
+sys.path.append('../common/SimpleIndex')
 
 import IndexServing
 from ttypes import IndexServingStatus
 from ttypes import IndexServingProperty
-import sys
-sys.path.append('../common/SimpleIndex')
 from SimpleIndex import *
 
 class IndexServingHandler(IndexServing.Iface):

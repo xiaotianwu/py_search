@@ -1,4 +1,5 @@
 from IndexServingImpl import IndexServing
 
-server = IndexServing()
-server.start()
+if __name__ == '__main__':
+    server = IndexServing()
+    server.start()
