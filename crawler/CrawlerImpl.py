@@ -1,4 +1,6 @@
-﻿from HtmlParser import LinkExtractor
+﻿import sys
+sys.path.append('../common')
+from HtmlParser import LinkExtractor
 
 import time
 import Queue
@@ -6,7 +8,7 @@ import urllib2
 import threading
 
 # global chunk path
-pageChunkPath = './page_chunk/'
+pageChunkPath = '../page_chunk/'
 # global url chunk
 urlChunk = set()
 urlChunkLock = threading.RLock()

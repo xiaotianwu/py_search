@@ -10,15 +10,15 @@ if not os.path.exists(pageChunkPath):
     print pageChunkPath, 'not exists, create it'
     os.mkdir(pageChunkPath)
 
-crawler = UrlCrawler(proxies = {}, debug = False)
-crawler.init('http://www.yahoo.com', 10, 0.01, 5)
+crawler = UrlCrawler(proxies = {}, debug = True)
+crawler.init('http://www.yahoo.com', 10, 2, 5)
 crawler.run()
 
 print crawler.urlPages
 print '-------------------------------------------'
 urlChunk.clear()
 
-threads = [UrlCrawlingThread(debugOpen = False) for i in range(0, 5)]
+threads = [UrlCrawlingThread(debugOpen = True) for i in range(0, 5)]
 for t in threads:
     t.init('http://www.yahoo.com')
     t.start()
