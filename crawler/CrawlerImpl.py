@@ -5,19 +5,34 @@ import Queue
 import urllib2
 import threading
 
+# global chunk path
+pageChunkPath = './page_chunk/'
+# global url chunk
+urlChunk = set()
+urlChunkLock = threading.RLock()
+
+class UrlFileNameConverter:
+    @staticmethod
+    def url_to_filename(url):
+        return url.replace('/', '^')
+
+    @staticmethod
+    def filename_to_url(fileName):
+        return fileName.replace('^', '/')
+
 class UrlCrawler:
     urlPages = {}
     __initialize = False
     
-    def __init__(self, parser = LinkExtractor(), proxies = {}, debug = False):
+    def __init__(self, proxies, debug):
         self.__proxies = proxies
-        self.__parser = parser
+        self.__parser = LinkExtractor()
         self.__debug = debug
         proxy = urllib2.ProxyHandler(proxies)
         opener = urllib2.build_opener(proxy)
         urllib2.install_opener(opener)
 
-    def init(self, seedUrl = '', pagesLimit = 1000, crawlInterval = 0.01, timeout = 5):
+    def init(self, seedUrl, pagesLimit, crawlInterval, timeout):
         self.__seedUrl = seedUrl
         self.__pagesLimit = pagesLimit
         self.__crawlInterval = crawlInterval
@@ -54,7 +69,9 @@ class UrlCrawler:
                 print 'finish reading'
         except Exception,exception:
             print exception
-        return page
+            page = ''
+        finally:
+            return page
 
     def run(self):
         if self.__initialize == False:
@@ -69,23 +86,47 @@ class UrlCrawler:
         i = 0
         while urlQueue.empty() is not True and i < self.__pagesLimit:
             url = urlQueue.get();
+            global urlChunk
+            global urlChunkLock
+            if url in urlChunk:
+                if self.__debug == True:
+                    print 'url:', url, 'has been scanned' 
+                    continue
+            urlChunkLock.acquire()
+            urlChunk.add(url)
+            urlChunkLock.release()
             if self.__debug == True:
                 print 'current crawling url is', url
-            self.urlPages[url] = self.download(url)
-            if self.__debug is True:
-                print self.urlPages[url]
-            link = self.parse(self.urlPages[url])
+            page = self.download(url)
+            if page == '':
+                if self.__debug == True:
+                    print 'can not download url', url
+                continue
+            # make the file io async
+            fileName = UrlFileNameConverter.url_to_filename(url)
+            if self.__debug == True:
+                print 'convert to file:', fileName
+            global pageChunkPath
+            pageFile = open(pageChunkPath + fileName, 'w');
+            pageFile.write(page)
+            pageFile.close()
+            link = self.parse(page)
             for l in link:
-                urlQueue.put(l)
+                if l not in urlChunk:
+                    urlQueue.put(l)
+            self.urlPages[url] = page
             i += 1
             if self.__debug is True:
                 print 'sleeping now...'
             time.sleep(self.__crawlInterval)
 
-#from threading import Thread
-#class CrawlingThread(Thread):
-#    crawler = UrlCrawler("http://www.qq.com", pagesLimit = 1000)
-#    
-#    def run(self):
-#        self.crawler.run()
-#
+class UrlCrawlingThread(threading.Thread):
+    def __init__(self, proxy = {}, debugOpen = False):
+        threading.Thread.__init__(self)
+        self.__crawler = UrlCrawler(proxies = proxy, debug = debugOpen)
+
+    def init(self, seedUrl, pagesLimit = 10, crawlInterval = 0.01, timeout = 5):
+        self.__crawler.init(seedUrl, pagesLimit, crawlInterval, timeout)
+
+    def run(self):
+        self.__crawler.run()
