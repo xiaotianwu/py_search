@@ -1,6 +1,7 @@
 ﻿import sys
 sys.path.append('../common')
 from HtmlParser import LinkExtractor
+from Common import UrlFileNameConverter
 
 import time
 import Queue
@@ -12,15 +13,6 @@ pageChunkPath = '../page_chunk/'
 # global url chunk
 urlChunk = set()
 urlChunkLock = threading.RLock()
-
-class UrlFileNameConverter:
-    @staticmethod
-    def url_to_filename(url):
-        return url.replace('/', '^')
-
-    @staticmethod
-    def filename_to_url(fileName):
-        return fileName.replace('^', '/')
 
 class UrlCrawler:
     urlPages = {}
@@ -55,6 +47,7 @@ class UrlCrawler:
             self.__parser.feed(page)
         except Exception, exception:
             print exception
+            self.__parser.link.clear()
         return self.__parser.link
 
     def download(self, url):
