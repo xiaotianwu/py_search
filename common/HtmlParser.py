@@ -5,8 +5,6 @@ sys.setdefaultencoding('utf-8')
 from HTMLParser import HTMLParser
 
 class WordBreaker:
-    type_name = "INTERFACE"
-
     def __init__(self):
         pass
 
@@ -15,8 +13,6 @@ class WordBreaker:
 
 # a simple wordbreaker based on space splitting, will be moved to common folder later
 class SimpleWordBreaker(WordBreaker):
-    type_name = "SIMPLE"
-
     def __init__(self):
         pass
 
