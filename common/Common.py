@@ -28,6 +28,6 @@ class DirHandler:
                 pass
         if recursive == True:
             for dirEntry in dirs:
-                files += DirHandler.get_all_files(dirEntry, suffix, True) 
+                files += DirHandler.get_all_files(dirEntry, suffix, True)
         return files
           

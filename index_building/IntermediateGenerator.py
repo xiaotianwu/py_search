@@ -1,9 +1,13 @@
 import cPickle as pickle
+import sys
+sys.path.append('../common')
+
+from Common import DirHandler
 
 class IntermediateGenerator:
     @staticmethod
-    def build_page_docid_mapping(self, directory, mappingFileName, debug = False):
-        files = DirHandler.get_all_files(directory, '*.page', False)
+    def build_page_docid_mapping(directory, mappingFileName, debug = False):
+        files = DirHandler.get_all_files(directory, '*', False)
         mapping = {}
         docid = 0
         for f in files:
@@ -20,7 +24,7 @@ class IntermediateGenerator:
             debugFile.close()
 
     @staticmethod
-    def read_page_docid_mapping(self, mappingFileName):
+    def read_page_docid_mapping(mappingFileName):
         mappingFile = open(mappingFileName, 'rb')
         mapping = pickle.loads(mappingFile.read())
         mappingFile.close()
