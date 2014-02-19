@@ -15,6 +15,9 @@ class SimpleIndex:
             print 'type error, term type is', type(term), 'index type is', type(index)
             raise BaseException # TODO change it to custom exception
 
+    def add_term_docid(self, term, docid):
+        self.__indexMap[term].add(docid)
+
     def get_indexmap(self):
         return self.__indexMap
 
