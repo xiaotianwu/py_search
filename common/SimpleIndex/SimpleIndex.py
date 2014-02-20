@@ -8,6 +8,7 @@ class SimpleIndex:
             print 'type error, indexMap type is', type(indexMap)
             raise BaseException # TODO change it to custom exception
 
+    # make unit test happy
     def add(self, term, index):
         if isinstance(term, str) and isinstance(index, set):
             self.__indexMap[term] = index
@@ -16,6 +17,8 @@ class SimpleIndex:
             raise BaseException # TODO change it to custom exception
 
     def add_term_docid(self, term, docid):
+        if term not in self.__indexMap:
+            self.__indexMap[term] = set()
         self.__indexMap[term].add(docid)
 
     def get_indexmap(self):
@@ -48,12 +51,12 @@ class SimpleIndexHandler:
 class SimpleIndexReader:
     def read(self, indexFileName):
         indexMapFile = open(indexFileName, 'rb')
-        indexMap = pickle.loads(indexMapFile.read())
+        index = pickle.loads(indexMapFile.read())
         indexMapFile.close()
-        if not isinstance(indexMap, SimpleIndex):
+        if not isinstance(index, SimpleIndex):
             print 'type error, file type is not SimpleIndex'
             raise BaseException # TODO change it to custom exception
-        return indexMap
+        return index
 
 class SimpleIndexWriter:
     def write(self, indexMap, indexFileName):

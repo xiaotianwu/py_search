@@ -1,5 +1,6 @@
 import glob
 import os
+import os.path
 
 class UrlFileNameConverter:
     @staticmethod
@@ -9,7 +10,7 @@ class UrlFileNameConverter:
     @staticmethod
     def filename_to_url(fileName):
         # deal with the case of fileName is in absolute path
-        fileName = fileName.split('/')[-1]
+        fileName = os.path.basename(fileName)
         return fileName.replace('^', '/')
 
 class DirHandler:

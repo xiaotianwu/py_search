@@ -15,7 +15,7 @@ class IntermediateGenerator:
         for fileName in files:
             baseName = os.path.basename(fileName)
             pageAddress = UrlFileNameConverter.filename_to_url(baseName)
-            mapping[docid] = pageAddress
+            mapping[pageAddress] = docid
             docid += 1
         mappingToStore = pickle.dumps(mapping, True)       
         mappingFile = open(mappingFileName, 'wb')
