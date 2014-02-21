@@ -3,6 +3,7 @@ sys.path.append('../common')
 from HtmlParser import LinkExtractor
 from Common import UrlFileNameConverter
 
+import re
 import time
 import Queue
 import urllib2
@@ -18,20 +19,21 @@ class UrlCrawler:
     urlPages = {}
     __initialize = False
     
-    def __init__(self, proxies, debug):
+    def __init__(self, proxies = {}, debug = False):
         self.__proxies = proxies
-        self.__parser = LinkExtractor()
+        self.___parser = LinkExtractor()
         self.__debug = debug
         proxy = urllib2.ProxyHandler(proxies)
         opener = urllib2.build_opener(proxy)
         urllib2.install_opener(opener)
 
-    def init(self, seedUrl, pagesLimit, crawlInterval, timeout):
+    def init(self, seedUrl = '.', pagesLimit = 10, crawlInterval = 0.1, timeout = 2, urlFilterRegexCollection = [re.compile('.*')]):
         self.__seedUrl = seedUrl
         self.__pagesLimit = pagesLimit
         self.__crawlInterval = crawlInterval
         self.__timeout = timeout
         self.__initialize = True
+        self.__urlFilterRegexCollection = urlFilterRegexCollection
 
     def print_params(self):
         print 'seed url is:', self.__seedUrl
@@ -41,16 +43,22 @@ class UrlCrawler:
         print 'crawl interval', self.__crawlInterval
         print 'timeout for crawling single page', self.__timeout
 
-    def parse(self, page):
-        self.__parser.link.clear()
+    def _parse(self, page):
+        self.___parser.link.clear()
         try:
-            self.__parser.feed(page)
+            self.___parser.feed(page)
         except Exception, exception:
             print exception
-            self.__parser.link.clear()
-        return self.__parser.link
+            self.___parser.link.clear()
+        return self.___parser.link
 
-    def download(self, url):
+    def filter_url(self, url):
+        for regex in self.__urlFilterRegexCollection:
+            if regex.match(url):
+                return True
+        return False
+
+    def _download(self, url):
         page = ''
         try:
             if self.__debug == True:
@@ -92,10 +100,10 @@ class UrlCrawler:
             urlChunkLock.release()
             if self.__debug == True:
                 print 'current crawling url is', url
-            page = self.download(url)
+            page = self._download(url)
             if page == '':
                 if self.__debug == True:
-                    print 'can not download url', url
+                    print 'can not _download url', url
                 continue
             # make the file io async
             fileName = UrlFileNameConverter.url_to_filename(url)
@@ -105,9 +113,9 @@ class UrlCrawler:
             pageFile = open(pageChunkPath + fileName, 'w');
             pageFile.write(page)
             pageFile.close()
-            link = self.parse(page)
+            link = self._parse(page)
             for l in link:
-                if l not in urlChunk:
+                if l not in urlChunk and self.filter_url(l) is True:
                     urlQueue.put(l)
             self.urlPages[url] = page
             i += 1
