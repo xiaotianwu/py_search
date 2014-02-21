@@ -88,7 +88,8 @@ class UrlCrawler:
         urlQueue.put(curUrl)
         i = 0
         while urlQueue.empty() is not True and i < self.__pagesLimit:
-            url = urlQueue.get();
+            url = urlQueue.get()
+            url = url.strip(' /?') # delete the unuseful character in head/tail
             global urlChunk
             global urlChunkLock
             if url in urlChunk and url != self.__seedUrl:
@@ -105,7 +106,7 @@ class UrlCrawler:
                 if self.__debug == True:
                     print 'can not _download url', url
                 continue
-            # make the file io async
+            # TODO make the file io async
             fileName = UrlFileNameConverter.url_to_filename(url)
             if self.__debug == True:
                 print 'convert to file:', fileName
@@ -120,7 +121,7 @@ class UrlCrawler:
             self.urlPages[url] = page
             i += 1
             if self.__debug is True:
-                print 'sleeping now...'
+                print 'sleeping', self.__crawlInterval, 'second'
             time.sleep(self.__crawlInterval)
 
 class UrlCrawlingThread(threading.Thread):
