@@ -1,15 +1,34 @@
+#!/usr/bin/env python
+
+from thrift.transport import TSocket
+from thrift.transport import TTransport
+from thrift.protocol import TBinaryProtocol
+from thrift.server import TServer
+
+from thrift.server import TNonblockingServer
+from twisted.internet import reactor
+from thrift.transport import TTwisted
+
 import sys
 sys.path.append('thrift/gen-py/index_serving')
-sys.path.append('../common')
 
+from IndexServingHandler import IndexServingHandler
 import IndexServing
-from ttypes import IndexServingStatus
-from ttypes import IndexServingProperty
 
-class IndexServingHandler(IndexServing.Iface):
-    def ping(self):
-        print "incoming ping"
-        return IndexServingProperty()
+class IndexServing:
+    __handler = IndexServingHandler()
+    __processor = IndexServing.Processor(handler)
+    __transport = TSocket.TServerSocket()
+    __tfactory = TTransport.TBufferedTransportFactory()
+    __pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 
-    def search(self, termIds):
+    def __init__(self, port = 1234):
+        self.__port = port
         pass
+
+    def start(self):
+        self.__server = TServer.TSimpleServer(self.__processor, self.__transport, self.__tfactory, self.__pfactory)
+        print "Start Server..."
+        self.__server.serve()
+        print "Done"
+        
