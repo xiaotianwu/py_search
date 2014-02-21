@@ -27,7 +27,7 @@ class UrlCrawler:
         opener = urllib2.build_opener(proxy)
         urllib2.install_opener(opener)
 
-    def init(self, seedUrl = '.', pagesLimit = 10, crawlInterval = 0.1, timeout = 2, urlFilterRegexCollection = [re.compile('.*')]):
+    def init(self, seedUrl, pagesLimit, crawlInterval, timeout, urlFilterRegexCollection):
         self.__seedUrl = seedUrl
         self.__pagesLimit = pagesLimit
         self.__crawlInterval = crawlInterval
@@ -91,7 +91,7 @@ class UrlCrawler:
             url = urlQueue.get();
             global urlChunk
             global urlChunkLock
-            if url in urlChunk:
+            if url in urlChunk and url != self.__seedUrl:
                 if self.__debug == True:
                     print 'url:', url, 'has been scanned' 
                     continue
@@ -124,12 +124,12 @@ class UrlCrawler:
             time.sleep(self.__crawlInterval)
 
 class UrlCrawlingThread(threading.Thread):
-    def __init__(self, proxy = {}, debugOpen = False):
+    def __init__(self, proxy = {}, debug = False):
         threading.Thread.__init__(self)
-        self.__crawler = UrlCrawler(proxies = proxy, debug = debugOpen)
+        self.__crawler = UrlCrawler(proxy, debug)
 
-    def init(self, seedUrl, pagesLimit = 10, crawlInterval = 0.01, timeout = 5):
-        self.__crawler.init(seedUrl, pagesLimit, crawlInterval, timeout)
+    def init(self, seedUrl, pagesLimit = 10, crawlInterval = 0.01, timeout = 5, urlFilterRegexCollection = [re.compile('.*')]):
+        self.__crawler.init(seedUrl, pagesLimit, crawlInterval, timeout, urlFilterRegexCollection)
 
     def run(self):
         self.__crawler.run()
