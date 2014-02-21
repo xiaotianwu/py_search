@@ -2,9 +2,21 @@
 
 from IntermediateGenerator import IntermediateGenerator
 import os
+import shutil
 
-path = '../page_chunk/'
+path = './testdir/'
+if os.path.exists(path):
+    shutil.rmtree(path)
+os.mkdir(path)
+testfile1 = path + 'a.html'
+testfile2 = path + 'b.html'
+os.mknod(testfile1)
+os.mknod(testfile2)
+
 IntermediateGenerator.build_page_docid_mapping(path, 'testMapping', False)
 mapping = IntermediateGenerator.read_page_docid_mapping('testMapping')
-print mapping
+assert 'a.html' in mapping
+assert 'b.html' in mapping
+
 os.remove('testMapping')
+shutil.rmtree(path)

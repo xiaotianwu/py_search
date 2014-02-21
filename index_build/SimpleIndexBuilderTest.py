@@ -10,18 +10,18 @@ from SimpleIndex import SimpleIndex
 from SimpleIndex import SimpleIndexReader
 
 path = '../page_chunk/'
-IntermediateGenerator.build_page_docid_mapping(path, 'testMapping', False)
+mappingFileName = '../index_chunk/testMapping'
+indexFileName = '../index_chunk/testIndex'
+readableFileName = '../index_chunk/readableIndex'
 
-builder = SimpleIndexBuilder()
-builder.init('testMapping', '../common/StopWordsList.txt')
-builder.build_index('../page_chunk/', 'testIndex')
+IntermediateGenerator.build_page_docid_mapping(path, mappingFileName, False)
+builder = SimpleIndexBuilder(True)
+builder.init(mappingFileName, '../common/StopWordsList.txt')
+builder.build_index(path, indexFileName)
 
 reader = SimpleIndexReader()
-index = reader.read('testIndex')
-f = open('IndexReadableFile', 'w')
+index = reader.read(indexFileName)
+f = open(readableFileName, 'w')
 for (k, v) in index.get_indexmap().items():
     f.write(str(k) + '\n' + str(v) + '\n')
 f.close()
-
-os.remove('testMapping')
-os.remove('testIndex')
