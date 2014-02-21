@@ -46,23 +46,29 @@ class TermExtractor(HTMLParser):
             return word
 
     def handle_starttag(self, tag, attrs):
-        if self.__textTagRegex.match(tag):
-            self.__tagClassification = 'TEXT'
-            if self.debug == True:
-                print "Tag =", tag
-                print "Attrs =", attrs
-        else:
-            self.__tagClassification = 'UNKNOWN'
+        try:
+            if self.__textTagRegex.match(tag):
+                self.__tagClassification = 'TEXT'
+                if self.debug == True:
+                    print "Tag =", tag
+                    print "Attrs =", attrs
+            else:
+                self.__tagClassification = 'UNKNOWN'
+        except Exception, exception:
+            print exception
 
     def handle_data(self, data):
-        if self.debug == True:
-            print "Data =", data
-        if self.__tagClassification in ('LINK', 'TEXT'):
-            words = self.wordBreaker.split(data);
-            for word in words:
-                word = self.filter_word(word)
-                if word != '':
-                    self.term.add(word)
+        try:
+            if self.debug == True:
+                print "Data =", data
+            if self.__tagClassification in ('LINK', 'TEXT'):
+                words = self.wordBreaker.split(data);
+                for word in words:
+                    word = self.filter_word(word)
+                    if word != '':
+                        self.term.add(word)
+        except Exception, exception:
+            print exception
 
 class LinkExtractor(HTMLParser):
     debug = False

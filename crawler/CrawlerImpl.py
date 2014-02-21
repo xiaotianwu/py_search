@@ -21,7 +21,7 @@ class UrlCrawler:
     
     def __init__(self, proxies = {}, debug = False):
         self.__proxies = proxies
-        self.___parser = LinkExtractor()
+        self.__parser = LinkExtractor()
         self.__debug = debug
         proxy = urllib2.ProxyHandler(proxies)
         opener = urllib2.build_opener(proxy)
@@ -44,13 +44,14 @@ class UrlCrawler:
         print 'timeout for crawling single page', self.__timeout
 
     def _parse(self, page):
-        self.___parser.link.clear()
+        self.__parser.link.clear()
         try:
-            self.___parser.feed(page)
+            self.__parser.feed(page)
         except Exception, exception:
             print exception
-            self.___parser.link.clear()
-        return self.___parser.link
+        finally:
+            self.__parser.close()
+        return self.__parser.link
 
     def filter_url(self, url):
         for regex in self.__urlFilterRegexCollection:

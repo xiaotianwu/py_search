@@ -45,6 +45,7 @@ class SimpleIndexBuilder:
             print exception
         finally:
             self.__termExtractor.term.clear()
+            self.__termExtractor.close()
             page.close()
         
     def _parse_page_in_dir(self, directory):
