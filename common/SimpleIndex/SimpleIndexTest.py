@@ -24,8 +24,9 @@ if __name__ == '__main__':
     
     n = 'test.index'
     writer = SimpleIndexWriter()
-    writer.write(s, n)
+    writer.write(s2, n)
     reader = SimpleIndexReader()
-    sClone = reader.read(n)
-    assert s.get_indexmap() == sClone.get_indexmap()
+    s2Clone = reader.read(n)
+    assert s2.get_indexmap() == s2Clone.get_indexmap()
+    assert s.get_indexmap() != s2.get_indexmap()
     os.remove(n)

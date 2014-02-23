@@ -31,13 +31,15 @@ class TermExtractor(HTMLParser):
     term = set()
     stopwords = set()
     
-    def set_stopwords(self, stopwordsFile):
+    def set_stopwords(self, stopwordsFileName):
         languageSectionRegex = re.compile('\[[a-z][a-z]\-[a-z][a-z]\]')
-        for line in open(stopwordsFile, 'r').readlines():
-            if (len(line) == 0 or line[0] == '#' or
-                   languageSectionRegex.match(line)):
-                continue
-            self.stopwords.add(line.replace('\r', '').replace('\n', '').lower())
+        with open(stopwordsFileName, 'r') as stopwordsFile:
+            for line in stopwordsFile.readlines():
+                if (len(line) == 0 or line[0] == '#' or
+                       languageSectionRegex.match(line)):
+                    continue
+                self.stopwords.add(
+                    line.replace('\r', '').replace('\n', '').lower())
 
     def filter_word(self, word):
         word = word.strip().lower()

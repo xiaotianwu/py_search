@@ -1,9 +1,8 @@
 import cPickle as pickle
 
 class SimpleIndex:
-    def __init__(self, indexMap = dict()):
-        assert isinstance(indexMap, dict)
-        self._indexMap = indexMap
+    def __init__(self):
+        self._indexMap = {}
 
     # make unit test happy
     def add(self, term, index):
@@ -52,9 +51,8 @@ class SimpleIndexHandler:
 
 class SimpleIndexReader:
     def read(self, indexFileName):
-        indexMapFile = open(indexFileName, 'rb')
-        index = pickle.loads(indexMapFile.read())
-        indexMapFile.close()
+        with open(indexFileName, 'rb') as indexMapFile:
+            index = pickle.loads(indexMapFile.read())
         assert isinstance(index, SimpleIndex)
         return index
 
@@ -64,6 +62,5 @@ class SimpleIndexWriter:
         # TODO add a MD5 to filename
         # use binary format
         indexMapToStore = pickle.dumps(indexMap, True)
-        indexFile = open(indexFileName, 'wb')
-        indexFile.write(indexMapToStore)
-        indexFile.close()
+        with open(indexFileName, 'wb') as indexFile:
+            indexFile.write(indexMapToStore)
