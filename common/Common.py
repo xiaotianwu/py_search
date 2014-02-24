@@ -2,6 +2,11 @@ import glob
 import os
 import os.path
 
+def async_process_call(decoratedFunc):
+    def async_call(*args, **opts):
+        return async.pool.apply_async(decoratedFunc, args, opts)
+    return async_call
+
 class UrlFileNameConverter:
     @staticmethod
     def url_to_filename(url):
