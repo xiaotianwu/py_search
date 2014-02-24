@@ -4,6 +4,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 from HTMLParser import HTMLParser
+from Logger import Logger
 
 class WordBreaker:
     def __init__(self):
@@ -25,12 +26,13 @@ class TermExtractor(HTMLParser):
     __textTagRegex = re.compile('(p)|(h[1-6])|(em)|(a)|(base)')
     __regularWordRegex = re.compile('[a-zA-Z]+')
 
-    _wordBreaker = SimpleWordBreaker()
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self._wordBreaker = SimpleWordBreaker()
+        self._logger = Logger.get('HtmlParser')
+        self.term = set()
+        self.stopwords = set()
 
-    debug = False
-    term = set()
-    stopwords = set()
-    
     def set_stopwords(self, stopwordsFileName):
         languageSectionRegex = re.compile('\[[a-z][a-z]\-[a-z][a-z]\]')
         with open(stopwordsFileName, 'r') as stopwordsFile:
@@ -54,9 +56,8 @@ class TermExtractor(HTMLParser):
         try:
             if self.__textTagRegex.match(tag):
                 self.__tagClassification = 'TEXT'
-                if self.debug == True:
-                    print "Tag =", tag
-                    print "Attrs =", attrs
+                self._logger.debug("Tag = " + tag)
+                self._logger.debug("Attrs = " + tag)
             else:
                 self.__tagClassification = 'UNKNOWN'
         except Exception, exception:
@@ -64,8 +65,7 @@ class TermExtractor(HTMLParser):
 
     def handle_data(self, data):
         try:
-            if self.debug == True:
-                print "Data =", data
+            self._logger.debug("Data = " + data)
             if self.__tagClassification in ('LINK', 'TEXT'):
                 words = self._wordBreaker.split(data);
                 for word in words:
@@ -79,8 +79,10 @@ class LinkExtractor(HTMLParser):
     __tagClassification = 'UNKNOWN'
     __linkTagRegex = re.compile('(a)|(base)')
 
-    debug = False
-    link = set()
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.link = set()
+        self._logger = Logger.get('HtmlParser')
 
     def handle_starttag(self, tag, attrs):
         if self.__linkTagRegex.match(tag):
@@ -91,8 +93,7 @@ class LinkExtractor(HTMLParser):
                     if name == 'href':
                         self.link.add(value)
                 self.__tagClassification = 'LINK'
-                if self.debug == True:
-                    print "Tag =", tag
-                    print "Attrs =", attrs
+                self._logger.debug("Tag = " + tag)
+                self._logger.debug("Attrs = " + tag)
         else:
             self.__tagClassification = 'UNKNOWN'
