@@ -100,7 +100,7 @@ class UrlCrawler:
             urlObject.close()
             if self._debug == True:
                 print 'finish reading'
-        except Exception,exception:
+        except Exception, exception:
             print exception
             page = None
         finally:

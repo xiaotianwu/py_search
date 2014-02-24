@@ -56,9 +56,13 @@ class SimpleIndexBuilder:
 
     def _build_inverted_index(self, indexFileName):
         invertedIndex = SimpleIndex()
-        for (docid, terms) in self.__index.items():
-            print 'docid =', docid, 'terms =', terms
-            for t in terms:
-                invertedIndex.add_term_docid(t, docid)
+        l1 = lambda x, y: [(subY, x) for subY in y]
+        l2 = lambda x, y: x + y
+        docTermPair = reduce(l1, [l2(key, self.__index[key])
+                                  for key in self.__index.keys()])
+        del self.__index
+        for (docid, term) in docTermPair:
+            invertedIndex.add_term_docid(term, docid)
+        del docTermPair
         writer = SimpleIndexWriter()
         writer.write(invertedIndex, indexFileName)
