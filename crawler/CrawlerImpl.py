@@ -130,6 +130,7 @@ class UrlCrawler:
             have_sleep = False
             while UrlCrawler.__urlQueue.empty() == True:
                 if have_sleep == True:
+                    print 'Crawler', self.crawlerId, 'exit'
                     return
                 time.sleep(20)
                 # sleeping only once
@@ -161,6 +162,9 @@ class UrlCrawler:
                 continue
             # TODO make the file io async
             fileName = UrlFileNameConverter.url_to_filename(url)
+            # TODO convert to file name to MD5
+            if len(fileName) > 250:
+                continue
             if self._debug == True:
                 print 'Crawler', self._crawlerId, 'convert to file:', fileName
             with open(self._path + fileName, 'w') as pageFile:

@@ -20,7 +20,7 @@ if __name__ == '__main__':
     threads = [UrlCrawlingThread(debug = True) for i in range(0, 5)]
     i = 0
     for t in threads:
-        t.init(crawlerId = i, pagesLimit = 1000,
+        t.init(crawlerId = i, pagesLimit = 200,
                urlFilterRegexCollection = urlRegex)
         t.start()
         i += 1
