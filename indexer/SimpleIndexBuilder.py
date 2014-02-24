@@ -56,8 +56,8 @@ class SimpleIndexBuilder:
 
     def _build_inverted_index(self, indexFileName):
         invertedIndex = SimpleIndex()
-        l1 = lambda x, y: [(subY, x) for subY in y]
-        l2 = lambda x, y: x + y
+        l1 = lambda x, y: x + y
+        l2 = lambda x, y: [(subY, x) for subY in y]
         docTermPair = reduce(l1, [l2(key, self.__index[key])
                                   for key in self.__index.keys()])
         del self.__index
