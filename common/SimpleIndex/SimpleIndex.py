@@ -30,7 +30,7 @@ class SimpleIndexHandler:
         self._terms = []
 
     def clear(self):
-        self._terms.clear()
+        self._terms = []
 
     def add(self, term):
         self._terms.append(term)
@@ -53,7 +53,7 @@ class SimpleIndexReader:
     def read(self, indexFileName):
         with open(indexFileName, 'rb') as indexMapFile:
             index = pickle.loads(indexMapFile.read())
-        assert isinstance(index, SimpleIndex)
+        assert isinstance(index, SimpleIndex) == True
         return index
 
 class SimpleIndexWriter:

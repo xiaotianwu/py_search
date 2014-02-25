@@ -12,6 +12,7 @@ if __name__ == '__main__':
     h.add('b')
     p = h.intersect()
     assert p == set([])
+    print s.get_indexmap()
     
     s2 = SimpleIndex()
     s2.add('c', set([1, 2, 3, 4]))
@@ -21,6 +22,7 @@ if __name__ == '__main__':
     h2.add('d')
     p2 = h2.intersect()
     assert p2 == set([2, 3, 4])
+    print s2.get_indexmap()
     
     n = 'test.index'
     writer = SimpleIndexWriter()
@@ -29,4 +31,4 @@ if __name__ == '__main__':
     s2Clone = reader.read(n)
     assert s2.get_indexmap() == s2Clone.get_indexmap()
     assert s.get_indexmap() != s2.get_indexmap()
-    os.remove(n)
+#    os.remove(n)

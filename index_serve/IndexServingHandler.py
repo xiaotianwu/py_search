@@ -11,7 +11,7 @@ from Common import async
 
 # move the class to separted py later
 class IndexSearcher:
-    '''the worker class to do the docid match'''
+    '''the worker to do the docid match'''
     def __init__(self, simpleIndex):
         assert isinstance(simpleIndex, SimpleIndex)
         self._indexHandler = SimpleIndexHandler(simpleIndex)
