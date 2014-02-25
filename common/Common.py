@@ -1,11 +1,16 @@
 import glob
 import os
 import os.path
+import thread
 
-def async_process_call(decoratedFunc):
+def async(decoratedFunc):
     def async_call(*args, **opts):
-        return async.pool.apply_async(decoratedFunc, args, opts)
+        return thread.start_new_thread(decoratedFunc, args, opts)
     return async_call
+
+def call_back(decoratedFunc):
+    '''it's just a qualifier'''
+    return decoratedFunc
 
 class UrlFileNameConverter:
     @staticmethod
@@ -36,4 +41,3 @@ class DirHandler:
             for dirEntry in dirs:
                 files += DirHandler.get_all_files(dirEntry, suffix, True)
         return files
-          
