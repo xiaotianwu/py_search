@@ -7,24 +7,31 @@ import IndexServing
 from ttypes import IndexServingStatus
 from ttypes import IndexServingProperty
 from SimpleIndex import *
-from Common import async_process_call
+from Common import async
 
+# move the class to separted py later
 class IndexSearcher:
+    '''the worker class to do the docid match'''
     def __init__(self, simpleIndex):
         assert isinstance(simpleIndex, SimpleIndex)
         self._indexHandler = SimpleIndexHandler(simpleIndex)
  
-    @async_process_call
+    #@async
     def search(self, termList):
         self._indexHandler.clear()
         for term in termList:
             self._indexHandler.add(term)
-        return self._indexHandler.intersect()
+        result = self._indexHandler.intersect()
+        search_callback(result)
+    
+    #@async
+    def search_callback(result):
+        print result
 
 class IndexServingHandler(IndexServing.Iface):
-    def __init__(self, simpleIndex):
-        assert isinstance(simpleIndex, SimpleIndex)
-        self._indexSeacher = IndexSearcher(simpleIndex)
+    '''the main handler of index serving'''
+    def __init__(self, index, searcherNum = 1):
+        self._indexSeacher = [IndexSearcher(index) for i in range(1, searchNum + 1)]
         
     def ping(self):
         print "incoming ping"

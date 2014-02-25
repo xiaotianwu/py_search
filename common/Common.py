@@ -2,10 +2,25 @@ import glob
 import os
 import os.path
 import thread
+from multiprocessing.pool import ThreadPool
+
+THREAD_POOL_SIZE = 4
+
+def InitThreadPool():
+    async.pool = ThreadPool(processes = THREAD_POOL_SIZE)
+
+def UninitThreadPool():
+    async.pool.close()
 
 def async(decoratedFunc):
     def async_call(*args, **opts):
-        return thread.start_new_thread(decoratedFunc, args, opts)
+        async.pool.apply_async(decoratedFunc, args, opts)
+    return async_call
+
+def async_thread(decoratedFunc):
+    '''using an anonymous thread which is not in the thead pool'''
+    def async_call(*args, **opts):
+        thread.start_new_thread(decoratedFunc, args, opts)
     return async_call
 
 def call_back(decoratedFunc):

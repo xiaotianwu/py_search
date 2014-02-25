@@ -8,8 +8,8 @@ import time
 import urllib2
 sys.path.append('../common')
 
-from HtmlParser import LinkExtractor
 from Common import UrlFileNameConverter
+from HtmlParser import LinkExtractor
 
 # global chunk path
 pageChunkPath = '../page_chunk/'
@@ -27,11 +27,11 @@ class UrlCrawler:
     # unique queue shared with all crawler
     __urlQueue = Queue.Queue()
    
-    # _init only once in the program
     @staticmethod
     def global_init(seedUrl,
                     downloadPath = pageChunkPath,
                     proxies = {}):
+        '''called only once in the program'''
         UrlCrawler.__global_lock.acquire()
         if UrlCrawler.__global_init is True:
             UrlCrawler.__global_lock.release()

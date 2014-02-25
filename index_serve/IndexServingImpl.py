@@ -11,25 +11,40 @@ from thrift.transport import TTransport
 from thrift.transport import TTwisted
 from twisted.internet import reactor
 
-
 from IndexServingHandler import IndexServingHandler
+from SimpleIndex import *
 import IndexServing
 
 class IndexServing:
-    __handler = IndexServingHandler()
-    __processor = IndexServing.Processor(handler)
-    __transport = TSocket.TServerSocket()
-    __tfactory = TTransport.TBufferedTransportFactory()
-    __pfactory = TBinaryProtocol.TBinaryProtocolFactory()
-
-    def __init__(self, port = 1234):
+    def __init__(self, port = 1234, blocking = True, threaded = False):
         self.__port = port
 
+    def init(self, indexFileName):
+        reader = SimpleIndexReader()
+        self.__index = reader.read(indexFileName)
+
     def start(self):
-        self.__server = TServer.TSimpleServer(self.__processor,
-                                              self.__transport,
-                                              self.__tfactory,
-                                              self.__pfactory)
         print "Start Server..."
-        self.__server.serve()
+        if blocking == True:
+            handler = IndexServingHandler(self.__index)
+            processor = IndexServing.Processor(handler)
+            transport = TSocket.TServerSocket()
+            tfactory = TTransport.TBufferedTransportFactory()
+            pfactory = TBinaryProtocol.TBinaryProtocolFactory()
+            if threaded == True:
+                self.__server = TServer.TSimpleServer(
+                                    processor, transport, tfactory, pfactory)
+            else:
+                self.__server = TServer.TThreadedServer(
+                                    processor, transport, tfactory, pfactory)
+            self.__server.serve()
+        else:
+            reactor.listenTCP(11000,
+                TTwisted.ThriftServerFactory(
+                    processor = processor,
+                    iprot_factory = TBinaryProtocol.TBinaryProtocolFactory()))
+
+            self.__reactor = reactor
+            self.__reactor.run()
+
         print "Done"
