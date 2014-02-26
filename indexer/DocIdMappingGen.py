@@ -6,9 +6,9 @@ sys.path.append('../common')
 from Common import DirHandler
 from Common import UrlFileNameConverter
 
-class IntermediateGenerator:
+class DocIdMappingGen:
     @staticmethod
-    def build_page_docid_mapping(directory, mappingFileName, debug = False):
+    def build_page_docid_mapping(directory, mappingFileName):
         files = DirHandler.get_all_files(directory, '*', False)
         mapping = {}
         docid = 0
@@ -18,14 +18,8 @@ class IntermediateGenerator:
             mapping[pageAddress] = docid
             docid += 1
         mappingToStore = pickle.dumps(mapping, True)       
-        mappingFile = open(mappingFileName, 'wb')
-        mappingFile.write(mappingToStore)
-        mappingFile.close()
-        if debug == True:
-            debugFile = open(mappingFileName + '.debug', 'w')
-            for (k, v) in mapping:
-                debugFile.write(k + '\t' + v + '\n')
-            debugFile.close()
+        with open(mappingFileName, 'wb') as mappingFile:
+            mappingFile.write(mappingToStore)
 
     @staticmethod
     def read_page_docid_mapping(mappingFileName):

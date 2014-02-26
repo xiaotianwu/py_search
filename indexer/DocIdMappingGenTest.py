@@ -3,7 +3,7 @@
 import os
 import shutil
 
-from IntermediateGenerator import IntermediateGenerator
+from DocIdMappingGen import DocIdMappingGen as Gen
 
 if __name__ == '__main__':
     path = './testdir/'
@@ -15,10 +15,11 @@ if __name__ == '__main__':
     os.mknod(testfile1)
     os.mknod(testfile2)
     
-    IntermediateGenerator.build_page_docid_mapping(path, 'testMapping', False)
-    mapping = IntermediateGenerator.read_page_docid_mapping('testMapping')
+    Gen.build_page_docid_mapping(path, 'testMapping')
+    mapping = Gen.read_page_docid_mapping('testMapping')
     assert 'a.html' in mapping
     assert 'b.html' in mapping
     
+    print mapping
     os.remove('testMapping')
     shutil.rmtree(path)

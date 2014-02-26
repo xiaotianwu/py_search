@@ -22,16 +22,17 @@ class IndexSearcher:
         for term in termList:
             self._indexHandler.add(term)
         result = self._indexHandler.intersect()
-        search_callback(result)
+        self.search_callback(result)
     
     #@async
-    def search_callback(result):
+    def search_callback(self, result):
         print result
 
 class IndexServingHandler(IndexServing.Iface):
     '''the main handler of index serving'''
     def __init__(self, index, searcherNum = 1):
-        self._indexSeacher = [IndexSearcher(index) for i in range(1, searchNum + 1)]
+        self._indexSeacher =
+            [IndexSearcher(index) for i in range(1, searchNum + 1)]
         
     def ping(self):
         print "incoming ping"

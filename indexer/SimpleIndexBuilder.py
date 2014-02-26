@@ -6,47 +6,49 @@ sys.path.append('../common/SimpleIndex')
 
 from Common import DirHandler
 from Common import UrlFileNameConverter
+from Logger import Logger
 from HtmlParser import TermExtractor
-from IntermediateGenerator import IntermediateGenerator as InGen
+from DocIdMappingGen import DocIdMappingGen as MapGen
 from SimpleIndex import SimpleIndex
 from SimpleIndex import SimpleIndexReader
 from SimpleIndex import SimpleIndexWriter
 
 class SimpleIndexBuilder:
-    def __init__(self, debug = False):
-        self.__termExtractor = TermExtractor()
-        self.__termExtractor.debug = debug
-        self.__debug = debug
-        self.__index = {}
+    def __init__(self):
+        self._logger = Logger.get('IndexBuilder')
+        self._termExtractor = TermExtractor()
+        self._index = {}
 
     def init(self, mappingFile, stopwordsFile):
-        self.__termExtractor.set_stopwords(stopwordsFile)
-        self.__docid_page_mapping = InGen.read_page_docid_mapping(mappingFile)
-        print self.__docid_page_mapping
+        self._logger.info('StopWords File:' + stopwordsFile)
+        self._termExtractor.set_stopwords(stopwordsFile)
+        self._docid_page_mapping = MapGen.read_page_docid_mapping(mappingFile)
+        print self._docid_page_mapping
 
     def build_index(self, inputDir, outputName):
         self._parse_page_in_dir(inputDir)
         self._build_inverted_index(outputName)
 
     def _parse_page(self, pageFile):
-        if self.__debug == True:
-            print 'current parsing:', pageFile
+        self._logger.info('current parsing:' + pageFile)
         page = open(pageFile, 'r')
         try:
-            self.__termExtractor.feed(page.read())
-            print 'term extracted =', self.__termExtractor.term
+            self._termExtractor.feed(page.read())
+            self._logger.debug('term extracted:' + str(self._termExtractor.term))
+            print 
             pageAddress = UrlFileNameConverter.filename_to_url(pageFile)
-            docid = self.__docid_page_mapping[pageAddress]
-            if docid in self.__index:
-                print 'pageAddress =', pageAddress, 'docid =',\
-                      docid, 'has been parsed, skip it'
+            docid = self._docid_page_mapping[pageAddress]
+            if docid in self._index:
+                self._logger.warn('pageAddress:' + pageAddress +
+                                  'docid:' + docid +
+                                  'has been parsed, skip it' )
             else:
-                self.__index[docid] = copy.deepcopy(self.__termExtractor.term)
+                self._index[docid] = copy.deepcopy(self._termExtractor.term)
         except Exception, exception:
             print exception
         finally:
-            self.__termExtractor.term.clear()
-            self.__termExtractor.close()
+            self._termExtractor.term.clear()
+            self._termExtractor.close()
             page.close()
         
     def _parse_page_in_dir(self, directory):
@@ -58,11 +60,12 @@ class SimpleIndexBuilder:
         invertedIndex = SimpleIndex()
         l1 = lambda x, y: x + y
         l2 = lambda x, y: [(subY, x) for subY in y]
-        docTermPair = reduce(l1, [l2(key, self.__index[key])
-                                  for key in self.__index.keys()])
-        del self.__index
-        for (docid, term) in docTermPair:
+        termDocPair = reduce(l1, [l2(key, self._index[key])
+                                  for key in self._index.keys()])
+        #print termDocPair
+        del self._index
+        for (term, docid) in termDocPair:
             invertedIndex.add_term_docid(term, docid)
-        del docTermPair
+        del termDocPair
         writer = SimpleIndexWriter()
         writer.write(invertedIndex, indexFileName)
