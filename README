@@ -1,1 +1,5 @@
 a simple python search engine
+
+ Dependency:
+     Apache Thrift
+ 
