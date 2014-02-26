@@ -9,7 +9,7 @@ from ttypes import IndexServingProperty
 from SimpleIndex import *
 from Common import async
 
-# move the class to separted py later
+# move the class to separated .py later
 class IndexSearcher:
     '''the worker to do the docid match'''
     def __init__(self, simpleIndex):
@@ -31,12 +31,13 @@ class IndexSearcher:
 class IndexServingHandler(IndexServing.Iface):
     '''the main handler of index serving'''
     def __init__(self, index, searcherNum = 1):
-        self._indexSeacher =
-            [IndexSearcher(index) for i in range(1, searchNum + 1)]
+        self._indexSearcher = IndexSearcher(index)
+#            [IndexSearcher(index) for i in range(1, searchNum + 1)]
         
     def ping(self):
         print "incoming ping"
         return IndexServingProperty()
 
     def search(self, terms):
+        print 'incoming search:', str(terms)
         self._indexSearcher.search(terms)
