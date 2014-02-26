@@ -1,4 +1,3 @@
-import copy
 import cPickle as pickle
 import sys
 sys.path.append('../common')
@@ -8,7 +7,8 @@ from Common import DirHandler
 from Common import UrlFileNameConverter
 from Logger import Logger
 from HtmlParser import TermExtractor
-from DocIdMappingGen import DocIdMappingGen as MapGen
+from DocIdMapping import DocIdMappingHandler as DocIdMap
+from TermIdMapping import TermIdMappingHandler as TermIdMap
 from SimpleIndex import SimpleIndex
 from SimpleIndex import SimpleIndexReader
 from SimpleIndex import SimpleIndexWriter
@@ -19,11 +19,15 @@ class SimpleIndexBuilder:
         self._termExtractor = TermExtractor()
         self._index = {}
 
-    def init(self, mappingFile, stopwordsFile):
+    def init(self, docidMappingFile, termidMappingFile, stopwordsFile):
         self._logger.info('StopWords File:' + stopwordsFile)
         self._termExtractor.set_stopwords(stopwordsFile)
-        self._docid_page_mapping = MapGen.read_page_docid_mapping(mappingFile)
-        print self._docid_page_mapping
+        self._logger.info('DocIdMapping File:' + docidMappingFile)
+        self._docid_mapping = DocIdMap.read_docid_mapping(docidMappingFile)
+        self._logger.info('TermsIdMapping File:' + termidMappingFile)
+        self._termid_mapping = TermIdMap.read_termid_mapping(termidMappingFile)
+        self._logger.debug(str(self._termid_mapping))
+        self._logger.debug(str(self._docid_mapping))
 
     def build_index(self, inputDir, outputName):
         self._parse_page_in_dir(inputDir)
@@ -35,15 +39,17 @@ class SimpleIndexBuilder:
         try:
             self._termExtractor.feed(page.read())
             self._logger.debug('term extracted:' + str(self._termExtractor.term))
-            print 
             pageAddress = UrlFileNameConverter.filename_to_url(pageFile)
-            docid = self._docid_page_mapping[pageAddress]
+            docid = self._docid_mapping[pageAddress]
+            termids = [self._termid_mapping[term]
+                          for term in self._termExtractor.term
+                              if term in self._termid_mapping]
             if docid in self._index:
                 self._logger.warn('pageAddress:' + pageAddress +
                                   'docid:' + docid +
                                   'has been parsed, skip it' )
             else:
-                self._index[docid] = copy.deepcopy(self._termExtractor.term)
+                self._index[docid] = termids
         except Exception, exception:
             print exception
         finally:
@@ -60,12 +66,12 @@ class SimpleIndexBuilder:
         invertedIndex = SimpleIndex()
         l1 = lambda x, y: x + y
         l2 = lambda x, y: [(subY, x) for subY in y]
-        termDocPair = reduce(l1, [l2(key, self._index[key])
-                                  for key in self._index.keys()])
+        termidDocidPair = reduce(l1, [l2(key, self._index[key])
+                                      for key in self._index.keys()])
         #print termDocPair
         del self._index
-        for (term, docid) in termDocPair:
-            invertedIndex.add_term_docid(term, docid)
-        del termDocPair
+        for (termid, docid) in termidDocidPair:
+            invertedIndex.add_termid_docid(termid, docid)
+        del termidDocidPair
         writer = SimpleIndexWriter()
         writer.write(invertedIndex, indexFileName)

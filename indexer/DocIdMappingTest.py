@@ -3,7 +3,7 @@
 import os
 import shutil
 
-from DocIdMappingGen import DocIdMappingGen as Gen
+from DocIdMapping import DocIdMappingHandler as Handler
 
 if __name__ == '__main__':
     path = './testdir/'
@@ -15,8 +15,8 @@ if __name__ == '__main__':
     os.mknod(testfile1)
     os.mknod(testfile2)
     
-    Gen.build_page_docid_mapping(path, 'testMapping')
-    mapping = Gen.read_page_docid_mapping('testMapping')
+    Handler.build_docid_mapping(path, 'testMapping')
+    mapping = Handler.read_docid_mapping('testMapping')
     assert 'a.html' in mapping
     assert 'b.html' in mapping
     

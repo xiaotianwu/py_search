@@ -4,23 +4,29 @@ import os
 sys.path.append('../common')
 sys.path.append('../common/SimpleIndex')
 
-from DocIdMappingGen import DocIdMappingGen as Generator
+from DocIdMapping import DocIdMappingHandler as DocIdMap
+from TermIdMapping import TermIdMappingHandler as TermIdMap
 from SimpleIndexBuilder import SimpleIndexBuilder
 from SimpleIndex import SimpleIndex
 from SimpleIndex import SimpleIndexReader
 
 if __name__ == '__main__':
     path = '../page_chunk/'
-    mappingFileName = '../index_chunk/testMapping'
-    indexFileName = '../index_chunk/testIndex'
+    docidMappingFile = '../index_chunk/testDocidMapping'
+    termidMappingFile = '../index_chunk/testTermidMapping'
+    stopwordsFile = '../common/StopWordsList.txt'
+    termsListFile = 'terms.txt'
+    indexFile = '../index_chunk/testIndex'
     
-    Generator.build_page_docid_mapping(path, mappingFileName)
+    DocIdMap.build_docid_mapping(path, docidMappingFile)
+    TermIdMap.build_termid_mapping(termsListFile, termidMappingFile)
+
     builder = SimpleIndexBuilder()
-    builder.init(mappingFileName, '../common/StopWordsList.txt')
-    builder.build_index(path, indexFileName)
+    builder.init(docidMappingFile, termidMappingFile, stopwordsFile)
+    builder.build_index(path, indexFile)
     
     reader = SimpleIndexReader()
-    index = reader.read(indexFileName)
+    index = reader.read(indexFile)
     readableFileName = '../index_chunk/readableIndex'
     with open(readableFileName, 'w') as f:
         for (k, v) in index.get_indexmap().items():

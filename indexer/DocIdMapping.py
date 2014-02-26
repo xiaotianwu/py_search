@@ -6,9 +6,10 @@ sys.path.append('../common')
 from Common import DirHandler
 from Common import UrlFileNameConverter
 
-class DocIdMappingGen:
+class DocIdMappingHandler:
+    '''create mapping from page address to document id(int32 unique number)'''
     @staticmethod
-    def build_page_docid_mapping(directory, mappingFileName):
+    def build_docid_mapping(directory, mappingFileName):
         files = DirHandler.get_all_files(directory, '*', False)
         mapping = {}
         docid = 0
@@ -22,7 +23,7 @@ class DocIdMappingGen:
             mappingFile.write(mappingToStore)
 
     @staticmethod
-    def read_page_docid_mapping(mappingFileName):
+    def read_docid_mapping(mappingFileName):
         mappingFile = open(mappingFileName, 'rb')
         mapping = pickle.loads(mappingFile.read())
         mappingFile.close()

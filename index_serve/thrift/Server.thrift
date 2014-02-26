@@ -20,7 +20,9 @@ service IndexServing {
 
    IndexServingProperty ping(),
 
-   // Return match doc ids
-   list<i32> search(1:list<i32> termIds)
+   // return match doc ids
+   list<i32> search(1:list<i32> termIds),
 
+   // test method, passing string list cost too much
+   list<i32> search_terms(1:list<string> terms)
 }

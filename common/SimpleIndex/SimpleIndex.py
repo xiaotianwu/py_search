@@ -1,25 +1,27 @@
 import cPickle as pickle
 
 class SimpleIndex:
+    '''SimpleIndex Structure: TermId-DocId1-DocId2-DocId3
+       doesn't contain any relavance score'''
     def __init__(self):
         self._indexMap = {}
 
     # make unit test happy
-    def add(self, term, index):
-        assert (isinstance(term, str) and isinstance(index, set))
-        self._indexMap[term] = index
+    def add(self, termId, index):
+        assert (isinstance(termId, int) and isinstance(index, set))
+        self._indexMap[termId] = index
 
-    def add_term_docid(self, term, docid):
-        if term not in self._indexMap:
-            self._indexMap[term] = set()
-        self._indexMap[term].add(docid)
+    def add_termid_docid(self, termId, docid):
+        if termId not in self._indexMap:
+            self._indexMap[termId] = set()
+        self._indexMap[termId].add(docid)
 
     def get_indexmap(self):
         return self._indexMap
 
-    def get_index(self, term):
-        if term in self._indexMap:
-            return self._indexMap[term]
+    def get_index(self, termId):
+        if termId in self._indexMap:
+            return self._indexMap[termId]
         else:
             return set()
 
@@ -27,26 +29,26 @@ class SimpleIndexHandler:
     def __init__(self, simpleIndex):
         assert isinstance(simpleIndex, SimpleIndex)
         self._simpleIndex = simpleIndex
-        self._terms = []
+        self._termIds = []
 
     def clear(self):
-        self._terms = []
+        self._termIds = []
 
-    def add(self, term):
-        self._terms.append(term)
+    def add(self, termId):
+        self._termIds.append(termId)
 
     def intersect(self):
-        assert len(self._terms) >= 2
-        lastIndex = self._simpleIndex.get_index(self._terms[0])
-        for i in range(1, len(self._terms)):
-            lastIndex &= self._simpleIndex.get_index(self._terms[i])
+        assert len(self._termIds) >= 2
+        lastIndex = self._simpleIndex.get_index(self._termIds[0])
+        for i in range(1, len(self._termIds)):
+            lastIndex &= self._simpleIndex.get_index(self._termIds[i])
         return lastIndex
 
     def union(self):
-        assert len(self._terms) >= 2
-        lastIndex = self._simpleIndex.get_index(self._terms[0])
-        for i in range(1, len(self._terms)):
-            lastIndex |= self._simpleIndex.get_index(self._terms[i])
+        assert len(self._termIds) >= 2
+        lastIndex = self._simpleIndex.get_index(self._termIds[0])
+        for i in range(1, len(self._termIds)):
+            lastIndex |= self._simpleIndex.get_index(self._termIds[i])
         return lastIndex
 
 class SimpleIndexReader:

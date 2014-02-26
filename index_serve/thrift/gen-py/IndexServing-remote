@@ -25,6 +25,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print 'Functions:'
   print '  IndexServingProperty ping()'
   print '   search( termIds)'
+  print '   search_terms( terms)'
   print ''
   sys.exit(0)
 
@@ -87,6 +88,12 @@ elif cmd == 'search':
     print 'search requires 1 args'
     sys.exit(1)
   pp.pprint(client.search(eval(args[0]),))
+
+elif cmd == 'search_terms':
+  if len(args) != 1:
+    print 'search_terms requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.search_terms(eval(args[0]),))
 
 else:
   print 'Unrecognized method %s' % cmd

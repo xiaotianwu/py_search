@@ -2,6 +2,7 @@
 
 import sys
 sys.path.append('thrift/gen-py/index_serving')
+sys.path.append('../indexer/')
 
 from thrift.protocol import TBinaryProtocol
 from thrift.server import TNonblockingServer
@@ -14,22 +15,31 @@ from twisted.internet import reactor
 from IndexServingHandler import IndexServingHandler
 from SimpleIndex import *
 from IndexServing import Processor as IndexServingProcessor
+from TermIdMapping import TermIdMappingHandler as TermMapHandler
 
 class IndexServing:
     def __init__(self, port = 1234, blocking = True, threaded = False):
         self._port = port
         self._blocking = blocking
         self._threaded = threaded
+        self._debugServerMode = False
 
-    def init(self, indexFileName):
+    def init(self, indexFileName,
+             debugServerMode = False, termidMappingFile = None):
         reader = SimpleIndexReader()
         self._index = reader.read(indexFileName)
         assert isinstance(self._index, SimpleIndex) == True
+        self._debugServerMode = debugServerMode
+        if self._debugServerMode == True:
+            self._termidMapping = TermMapHandler.read_termid_mapping(
+                                      termidMappingFile)
 
     def start(self):
         print "Start Server..."
         if self._blocking == True:
             handler = IndexServingHandler(self._index)
+            if self._debugServerMode == True:
+                handler.load_debug_mapping(self._termidMapping)
             processor = IndexServingProcessor(handler)
             transport = TSocket.TServerSocket()
             tfactory = TTransport.TBufferedTransportFactory()

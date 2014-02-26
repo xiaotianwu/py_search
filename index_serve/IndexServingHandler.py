@@ -17,16 +17,17 @@ class IndexSearcher:
         self._indexHandler = SimpleIndexHandler(simpleIndex)
  
     #@async
-    def search(self, termList):
+    def search(self, termIdList):
         self._indexHandler.clear()
-        for term in termList:
-            self._indexHandler.add(term)
+        for termid in termIdList:
+            self._indexHandler.add(termid)
         result = self._indexHandler.intersect()
-        self.search_callback(result)
+        return self.search_callback(result)
     
     #@async
     def search_callback(self, result):
         print result
+        return result
 
 class IndexServingHandler(IndexServing.Iface):
     '''the main handler of index serving'''
@@ -34,10 +35,24 @@ class IndexServingHandler(IndexServing.Iface):
         self._indexSearcher = IndexSearcher(index)
 #            [IndexSearcher(index) for i in range(1, searchNum + 1)]
         
+    def load_debug_mapping(self, termidMapping):
+        self._termidMapping = termidMapping
+
     def ping(self):
         print "incoming ping"
         return IndexServingProperty()
 
-    def search(self, terms):
-        print 'incoming search:', str(terms)
-        self._indexSearcher.search(terms)
+    def search(self, termIds):
+        print 'incoming search request:', str(termIds)
+        return self._indexSearcher.search(termIds)
+
+    def search_terms(self, terms):
+        print 'incoming search_term request:', str(terms)
+        termIds = [self._term_to_id(term) for term in terms]
+        return self._indexSearcher.search(termIds)
+
+    def _term_to_id(self, term):
+        if self._termidMapping != None and term in self._termidMapping:
+            return self._termidMapping[term]
+        else:
+            return -1
