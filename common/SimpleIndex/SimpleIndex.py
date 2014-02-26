@@ -8,7 +8,8 @@ class SimpleIndex:
 
     # make unit test happy
     def add(self, termId, index):
-        assert (isinstance(termId, int) and isinstance(index, set))
+        if not isinstance(termId, int) and isinstance(index, set):
+            raise TypeError('termId must be int and index must be set')
         self._indexMap[termId] = index
 
     def add_termid_docid(self, termId, docid):
@@ -27,7 +28,8 @@ class SimpleIndex:
 
 class SimpleIndexHandler:
     def __init__(self, simpleIndex):
-        assert isinstance(simpleIndex, SimpleIndex)
+        if not isinstance(simpleIndex, SimpleIndex):
+            raise TypeError('input must be SimpleIndex')
         self._simpleIndex = simpleIndex
         self._termIds = []
 
@@ -60,7 +62,8 @@ class SimpleIndexReader:
 
 class SimpleIndexWriter:
     def write(self, indexMap, indexFileName):
-        assert isinstance(indexMap, SimpleIndex)
+        if not isinstance(indexMap, SimpleIndex):
+            raise TypeError('input must be SimpleIndex')
         # TODO add a MD5 to filename
         # use binary format
         indexMapToStore = pickle.dumps(indexMap, True)

@@ -28,7 +28,8 @@ class IndexServing:
              debugServerMode = False, termidMappingFile = None):
         reader = SimpleIndexReader()
         self._index = reader.read(indexFileName)
-        assert isinstance(self._index, SimpleIndex) == True
+        if not isinstance(self._index, SimpleIndex):
+            raise TypeError('index must be SimpleIndex')
         self._debugServerMode = debugServerMode
         if self._debugServerMode == True:
             self._termidMapping = TermMapHandler.read_termid_mapping(

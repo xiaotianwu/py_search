@@ -13,7 +13,8 @@ from Common import async
 class IndexSearcher:
     '''the worker to do the docid match'''
     def __init__(self, simpleIndex):
-        assert isinstance(simpleIndex, SimpleIndex)
+        if not isinstance(simpleIndex, SimpleIndex):
+            raise TypeError('input must be SimpleIndex')
         self._indexHandler = SimpleIndexHandler(simpleIndex)
  
     #@async
