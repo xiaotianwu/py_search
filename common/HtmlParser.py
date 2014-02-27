@@ -60,8 +60,8 @@ class TermExtractor(HTMLParser):
                 self._logger.debug("Attrs = " + tag)
             else:
                 self.__tagClassification = 'UNKNOWN'
-        except Exception, exception:
-            print exception
+        except Exception as exception:
+            print(exception)
 
     def handle_data(self, data):
         try:
@@ -72,8 +72,8 @@ class TermExtractor(HTMLParser):
                     word = self.filter_word(word)
                     if word != None:
                         self.term.add(word)
-        except Exception, exception:
-            print exception
+        except Exception as exception:
+            print(exception)
 
 class LinkExtractor(HTMLParser):
     __tagClassification = 'UNKNOWN'

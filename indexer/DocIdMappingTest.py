@@ -20,6 +20,6 @@ if __name__ == '__main__':
     assert 'a.html' in mapping
     assert 'b.html' in mapping
     
-    print mapping
+    print(mapping)
     os.remove('testMapping')
     shutil.rmtree(path)

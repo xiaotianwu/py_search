@@ -12,7 +12,7 @@ if __name__ == '__main__':
     h.add(2)
     p = h.intersect()
     assert p == set([])
-    print s.get_indexmap()
+    print(s.get_indexmap())
     
     s2 = SimpleIndex()
     s2.add(1, set([1, 2, 3, 4]))
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     h2.add(2)
     p2 = h2.intersect()
     assert p2 == set([2, 3, 4])
-    print s2.get_indexmap()
+    print(s2.get_indexmap())
     
     n = 'test.index'
     writer = SimpleIndexWriter()

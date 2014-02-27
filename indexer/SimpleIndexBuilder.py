@@ -50,8 +50,8 @@ class SimpleIndexBuilder:
                                   'has been parsed, skip it' )
             else:
                 self._index[docid] = termids
-        except Exception, exception:
-            print exception
+        except Exception as exception:
+            print(exception)
         finally:
             self._termExtractor.term.clear()
             self._termExtractor.close()
@@ -68,7 +68,6 @@ class SimpleIndexBuilder:
         l2 = lambda x, y: [(subY, x) for subY in y]
         termidDocidPair = reduce(l1, [l2(key, self._index[key])
                                       for key in self._index.keys()])
-        #print termDocPair
         del self._index
         for (termid, docid) in termidDocidPair:
             invertedIndex.add_termid_docid(termid, docid)

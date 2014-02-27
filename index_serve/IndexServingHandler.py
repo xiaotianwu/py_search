@@ -27,7 +27,7 @@ class IndexSearcher:
     
     #@async
     def search_callback(self, result):
-        print result
+        print(result)
         return result
 
 class IndexServingHandler(IndexServing.Iface):
@@ -40,15 +40,15 @@ class IndexServingHandler(IndexServing.Iface):
         self._termidMapping = termidMapping
 
     def ping(self):
-        print "incoming ping"
+        print('incoming ping')
         return IndexServingProperty()
 
     def search(self, termIds):
-        print 'incoming search request:', str(termIds)
+        print('incoming search request:', str(termIds))
         return self._indexSearcher.search(termIds)
 
     def search_terms(self, terms):
-        print 'incoming search_term request:', str(terms)
+        print('incoming search_term request:', str(terms))
         termIds = [self._term_to_id(term) for term in terms]
         return self._indexSearcher.search(termIds)
 

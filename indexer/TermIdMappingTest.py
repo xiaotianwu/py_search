@@ -7,4 +7,4 @@ if __name__ == '__main__':
     outputFile = '../index_chunk/termIdMapping'
     handler.build_termid_mapping(inputFile, outputFile)
     mapping = handler.read_termid_mapping(outputFile)
-    print mapping
+    print(mapping)
