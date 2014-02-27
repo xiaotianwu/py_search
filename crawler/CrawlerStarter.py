@@ -9,21 +9,19 @@ from CrawlerImpl import pageChunkPath
 from CrawlerImpl import UrlCrawler
 
 if __name__ == '__main__':
-    UrlCrawler.global_init(seedUrl = 'http://www.yahoo.com',
+    UrlCrawler.global_init(seedUrl = 'http://www.sina.com.cn',
                            downloadPath = pageChunkPath)
     
     if not os.path.exists(pageChunkPath):
         print pageChunkPath, 'not exists, create it'
         os.mkdir(pageChunkPath)
     
-    urlRegex = [re.compile('.*\.yahoo\.com/.*')]
+    urlRegex = [re.compile('.*\.sina\.com/.*')]
     threads = [UrlCrawlingThread(debug = True) for i in range(0, 5)]
-    i = 0
     for t in threads:
-        t.init(crawlerId = i, pagesLimit = 200,
+        t.init(pagesLimit = 200,
                urlFilterRegexCollection = urlRegex)
         t.start()
-        i += 1
     
     for t in threads:
         t.join()

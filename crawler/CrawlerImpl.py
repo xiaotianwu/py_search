@@ -10,6 +10,7 @@ sys.path.append('../common')
 
 from Common import UrlFileNameConverter
 from HtmlParser import LinkExtractor
+from Logger import Logger
 
 # global chunk path
 pageChunkPath = '../page_chunk/'
@@ -51,9 +52,9 @@ class UrlCrawler:
     def __init__(self, debug = False):
         self._urlPages = {}
         self._init = False
-        self._debug = debug
+        self._logger = Logger.get('UrlCrawler')
 
-    def init(self, crawlerId, pagesLimit, crawlInterval,
+    def init(self, pagesLimit, crawlInterval,
              timeout, urlFilterRegexCollection, parser):
         self._pagesLimit = pagesLimit
         self._crawlInterval = crawlInterval
@@ -62,13 +63,11 @@ class UrlCrawler:
         self._parser = parser
         self._path = UrlCrawler.__downloadPath
         self._init = True
-        self._crawlerId = crawlerId
 
     def print_params(self):
         print 'seed url:', UrlCrawler.__seedUrl
         print 'crawl pages limit:', self._pagesLimit
         print 'proxies:', self.__proxies
-        print 'debug mode:', self._debug
         print 'crawl interval', self._crawlInterval
         print 'timeout for crawling single page', self._timeout
         print 'parser type is', type(self._parser)
@@ -95,15 +94,12 @@ class UrlCrawler:
     def _download(self, url):
         page = None
         try:
-            if self._debug == True:
-                print 'Crawler', self._crawlerId, 'urlopen', url
+            self._logger.info('urlopen' + url)
             urlObject = urllib2.urlopen(url, timeout = self._timeout)
-            if self._debug == True:
-                print 'Crawler', self._crawlerId, 'read url'
+            self._logger.info('read url' + url)
             page = urlObject.read()
             urlObject.close()
-            if self._debug == True:
-                print 'Crawler', self._crawlerId, 'finish reading'
+            self._logger.info('finish reading' + url)
         except Exception, exception:
             print exception
             page = None
@@ -120,17 +116,16 @@ class UrlCrawler:
 
     def run(self):
         if UrlCrawler.__global_init == False or self._init == False:
-            print 'Crawler', self._crawlerId, 'Not init'
+            self._logger.error('crawler not init')
             return
-        if self._debug == True:
-            self.print_params()
-            print 'Crawler', self._crawlerId, 'start running...'
+        self.print_params()
+        self._logger.info('start running...')
         i = 0
         while i < self._pagesLimit:
             have_sleep = False
             while UrlCrawler.__urlQueue.empty() == True:
                 if have_sleep == True:
-                    print 'Crawler', self.crawlerId, 'exit'
+                    self._logger.info('exit crawler')
                     return
                 time.sleep(20)
                 # sleeping only once
@@ -146,27 +141,21 @@ class UrlCrawler:
             global urlChunkLock
             urlChunkLock.acquire()
             if url in urlChunk:
-                if self._debug == True:
-                    print 'Crawler', self._crawlerId,\
-                          'url:', url, 'has been scanned' 
-                    continue
+                self._logger.info('url:' + url + 'has been scanned')
+                continue
             urlChunk.add(url)
             urlChunkLock.release()
-            if self._debug == True:
-                print 'Crawler', self._crawlerId, 'current crawling url is', url
+            self._logger.info('current crawling:' + url)
             page = self._download(url)
             if page == None:
-                if self._debug == True:
-                    print 'Crawler', self._crawlerId,\
-                          'can not download url', url
+                self._logger.info('can not download:' + url)
                 continue
             # TODO make the file io async
             fileName = UrlFileNameConverter.url_to_filename(url)
             # TODO convert to file name to MD5
             if len(fileName) > 250:
                 continue
-            if self._debug == True:
-                print 'Crawler', self._crawlerId, 'convert to file:', fileName
+            self._logger.info('convert to file:' + fileName)
             with open(self._path + fileName, 'w') as pageFile:
                 pageFile.write(page)
             link = self._parse(page)
@@ -176,9 +165,7 @@ class UrlCrawler:
                     UrlCrawler.__urlQueue.put(l)
             self._urlPages[url] = page
             i += 1
-            if self._debug is True:
-                print 'Crawler', self._crawlerId, 'sleeping',\
-                      self._crawlInterval, 'second'
+            self._logger.info('sleep' + str(self._crawlInterval) + 'seconds')
             time.sleep(self._crawlInterval)
 
 class UrlCrawlingThread(threading.Thread):
@@ -186,11 +173,11 @@ class UrlCrawlingThread(threading.Thread):
         threading.Thread.__init__(self)
         self._crawler = UrlCrawler(debug)
 
-    def init(self, crawlerId, pagesLimit = 10,
+    def init(self, pagesLimit = 10,
              crawlInterval = 1, timeout = 5,
              urlFilterRegexCollection = [re.compile('.*')],
              parser = LinkExtractor()):
-        self._crawler.init(crawlerId, pagesLimit, crawlInterval, timeout,
+        self._crawler.init(pagesLimit, crawlInterval, timeout,
                            urlFilterRegexCollection, parser)
 
     def run(self):

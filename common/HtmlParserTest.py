@@ -11,7 +11,7 @@ if __name__ == '__main__':
     print('link list =', parser.link)
     print('----------------Split---------------------')
     parser.close()
-    
+
     parser = TermExtractor()
     parser.set_stopwords('StopWordsList.txt')
     print('stop words = ', parser.stopwords)

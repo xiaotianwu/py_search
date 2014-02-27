@@ -33,6 +33,14 @@ class TermExtractor(HTMLParser):
         self.term = set()
         self.stopwords = set()
 
+    def close(self):
+        try:
+            HTMLParser.close(self)
+        except Exception as exception:
+            print exception
+        finally:
+            self.term.clear()
+
     def set_stopwords(self, stopwordsFileName):
         languageSectionRegex = re.compile('\[[a-z][a-z]\-[a-z][a-z]\]')
         with open(stopwordsFileName, 'r') as stopwordsFile:
@@ -97,3 +105,11 @@ class LinkExtractor(HTMLParser):
                 self._logger.debug("Attrs = " + tag)
         else:
             self.__tagClassification = 'UNKNOWN'
+
+    def close(self):
+        try:
+            HTMLParser.close(self)
+        except Exception as exception:
+            print exception
+        finally:
+            self.link.clear()
