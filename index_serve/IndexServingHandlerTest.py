@@ -13,7 +13,8 @@ if __name__ == '__main__':
     reader = SimpleIndexReader()
     index = reader.read('../index_chunk/testIndex')
     searcher = IndexSearcher(index)
-    termIdList = [36, 52]
+    #termIdList = [36, 52]
+    termIdList = [2150, 4158]
     searcher.search(termIdList)
 
     handler = IndexServingHandler(index)
@@ -22,5 +23,6 @@ if __name__ == '__main__':
     handler.load_debug_mapping(termidMapping)
     handler.ping()
     handler.search(termIdList)
-    termsList = ['action', 'account']
+    #termsList = ['action', 'account']
+    termsList = ['lake', 'turn']
     handler.search_terms(termsList)

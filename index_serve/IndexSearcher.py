@@ -22,13 +22,6 @@ class IndexSearcher:
             self._indexHandler.add(termid)
         result = self._indexHandler.intersect()
         return self.search_callback(result)
-    
-    def load_index(self, termIdList):
-        print('loading index for', termIdList)
-        pass
-
-    def load_index_callback(self):
-        pass
 
     def search_callback(self, result):
         print(result)
