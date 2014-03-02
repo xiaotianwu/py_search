@@ -41,17 +41,19 @@ class SimpleIndexHandler:
 
     def intersect(self):
         assert len(self._termIds) >= 2
-        lastIndex = self._simpleIndex.get_index(self._termIds[0])
-        for i in range(1, len(self._termIds)):
-            lastIndex &= self._simpleIndex.get_index(self._termIds[i])
-        return lastIndex
+        result = self._simpleIndex.get_index(self._termIds[0]) &\
+                 self._simpleIndex.get_index(self._termIds[1])
+        for i in range(2, len(self._termIds)):
+            result &= self._simpleIndex.get_index(self._termIds[i])
+        return result
 
     def union(self):
         assert len(self._termIds) >= 2
-        lastIndex = self._simpleIndex.get_index(self._termIds[0])
-        for i in range(1, len(self._termIds)):
-            lastIndex |= self._simpleIndex.get_index(self._termIds[i])
-        return lastIndex
+        result = self._simpleIndex.get_index(self._termIds[0]) |\
+                 self._simpleIndex.get_index(self._termIds[1])
+        for i in range(2, len(self._termIds)):
+            result |= self._simpleIndex.get_index(self._termIds[i])
+        return result
 
 class SimpleIndexReader:
     def read(self, indexFileName):

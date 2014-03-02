@@ -28,7 +28,7 @@ def create_testdata(fileNum):
         print('create ' + fileName)
         os.system('dd of=' + fileName + ' if=/dev/zero bs=1024 count=102400')
 
-def clear_testdata():
+def delete_testdata():
     os.system('rm testdata -r')  
 
 if __name__ == '__main__':
@@ -60,4 +60,4 @@ if __name__ == '__main__':
     #gevent.sleep(5)
     time.sleep(5)
 
-    #clear_testdata()
+    #delete_testdata()
