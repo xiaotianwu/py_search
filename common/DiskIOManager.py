@@ -30,7 +30,7 @@ class DiskIOManager:
         self._maxTaskNum = maxTask
         
     def run(self):
-        self._logger.info('start manager')
+        self._logger.info('start diskio manager')
         while True:
             ioRequest = self._ioRequestQueue.get()
             if ioRequest.Type == 'STOP':
@@ -39,7 +39,7 @@ class DiskIOManager:
             elif ioRequest.Type == 'READ':
                 if ioRequest.fileName not in self._fileDescCache:
                     name = ioRequest.fileName
-                    self._fileDescCache[name] = open(name, 'r')
+                    self._fileDescCache[name] = open(name, 'r') # TODO 'rb' mode?
                 self._logger.debug('enter read thread')
                 self._ioThreads.apply_async(self._read_from_disk, (ioRequest,))
             elif ioRequest.Type == 'WRITE':
@@ -85,4 +85,4 @@ class DiskIOManager:
         self._ioThreads.close()
         for desc in self._fileDescCache.values():
             desc.close()  
-        self._logger.info('exit manager')
+        self._logger.info('exit diskio manager')
