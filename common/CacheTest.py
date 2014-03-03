@@ -86,7 +86,9 @@ if __name__ == '__main__':
     assert cache._tail().key == 5
     assert cache.size() == 3
     assert cache.capacity() == 5
-    cache.remove(4) # 5->2
+    cache.remove(4) # 2->5
+    assert cache._head().key == 2
+    assert cache._tail().key == 5
     assert cache.find(4) == None
     cache.remove(2)  # 5
     assert cache.find(2) == None
