@@ -37,8 +37,8 @@ class Cache:
         self._hashTable[key] = newNode
         self._logger.debug('add ' + str(self._hashTable))
         if self._curElemNum == self._maxElemNum:
-            self._logger.debug('remove ' + str(self._top().key))
-            self._hashTable.pop(self._top().key)
+            self._logger.debug('remove ' + str(self._head().key))
+            self._hashTable.pop(self._head().key)
             self._pop()
         else:
             self._curElemNum += 1
@@ -65,19 +65,27 @@ class Cache:
         cur = self._hashTable[key]
         if cur == self._chunkTail:
             return
+        if cur == self._chunkHead:
+           self._chunkHead = self._chunkHead.succ
         if cur.prev != None:
             cur.prev.succ = cur.succ
+        if cur.succ != None:
+            cur.succ.prev = cur.prev
+        cur.succ = None
+        cur.prev = self._chunkTail
         self._chunkTail.succ = cur
         self._chunkTail = cur
 
-    def _top(self):
+    def _head(self):
         return self._chunkHead
+
+    def _tail(self):
+        return self._chunkTail
 
     def _pop(self):
         top = self._chunkHead
-        if self._chunkHead != None:
-            self._chunkHead = self._chunkHead.succ
-        if top == self._chunkTail:
+        self._chunkHead = self._chunkHead.succ
+        if self._chunkHead == None:
             self._chunkTail = None
         del top
         self._logger.debug('pop ' + 'chunkHead ' +\
@@ -92,6 +100,7 @@ class Cache:
             self._chunkHead = node
         if self._chunkTail != None:
             self._chunkTail.succ = node
+            node.prev = self._chunkTail
         self._chunkTail = node
         self._logger.debug('push ' + 'chunkHead ' +\
                            str(self._chunkHead.key) +\
@@ -106,6 +115,11 @@ class ThreadSafeCache:
     def find(self, key):
         return self._cache.find(key)
   
+    def clear(self):
+        self._lock.acquire()
+        self._cache.clear()
+        self._locak.release()
+
     def add(self, key, value):
         self._lock.acquire()
         self._cache.add(key, value)
