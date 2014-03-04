@@ -24,8 +24,8 @@ class Cache:
         self._hashTable.clear()
         self._curElemNum = 0
        
-    def find(self, key):
-        self._logger.debug('find ' + str(self._hashTable))
+    def fetch(self, key):
+        self._logger.debug('fetch ' + str(self._hashTable))
         if key in self._hashTable:
             self._update(key)
             return self._hashTable[key].val

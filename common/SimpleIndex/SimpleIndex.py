@@ -1,4 +1,5 @@
 import cPickle as pickle
+import threading
 
 class SimpleIndex:
     '''SimpleIndex Structure: TermId-DocId1-DocId2-DocId3
@@ -27,32 +28,27 @@ class SimpleIndex:
             return set()
 
 class SimpleIndexHandler:
-    def __init__(self, simpleIndex):
-        if not isinstance(simpleIndex, SimpleIndex):
-            raise TypeError('input must be SimpleIndex')
-        self._simpleIndex = simpleIndex
-        self._termIds = []
+    def __init__(self):
+        self._indexContainer = []
 
     def clear(self):
-        self._termIds = []
+        self._indexContainer = []
 
-    def add(self, termId):
-        self._termIds.append(termId)
+    def add(self, index):
+        self._indexContainer.append(index)
 
     def intersect(self):
-        assert len(self._termIds) >= 2
-        result = self._simpleIndex.get_index(self._termIds[0]) &\
-                 self._simpleIndex.get_index(self._termIds[1])
-        for i in range(2, len(self._termIds)):
-            result &= self._simpleIndex.get_index(self._termIds[i])
+        assert len(self._indexContainer) >= 2
+        result = self._indexContainer[0] & self._indexContainer[1]
+        for i in range(2, len(self._indexContainer)):
+            result &= self._indexContainer[i]
         return result
 
     def union(self):
-        assert len(self._termIds) >= 2
-        result = self._simpleIndex.get_index(self._termIds[0]) |\
-                 self._simpleIndex.get_index(self._termIds[1])
-        for i in range(2, len(self._termIds)):
-            result |= self._simpleIndex.get_index(self._termIds[i])
+        assert len(self._indexContainer) >= 2
+        result = self._indexContainer[0] | self._indexContainer[1]
+        for i in range(2, len(self._indexContainer)):
+            result |= self._indexContainer[i]
         return result
 
 class SimpleIndexReader:

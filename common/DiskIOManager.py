@@ -19,7 +19,7 @@ class DiskIORequest:
         self.retCode = 0 # TODO use enum to replace it
 
 class DiskIOManager:
-    def __init__(self, diskIOThreadNum = 5, maxTask = 100):
+    def __init__(self, diskIOThreadNum = 5, maxTask = -1):
         self._ioRequestQueue = Queue()
         self._ioThreads = Pool(diskIOThreadNum)
         # TODO Need LRU Strategy Cache?
