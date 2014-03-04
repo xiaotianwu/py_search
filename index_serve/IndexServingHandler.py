@@ -11,9 +11,8 @@ from IndexSearcher import IndexSearcher
 
 class IndexServingHandler(IndexServing.Iface):
     '''the main handler of index serving'''
-    def __init__(self, index, searcherNum = 1):
-        self._indexSearcher = IndexSearcher(index)
-#            [IndexSearcher(index) for i in range(1, searchNum + 1)]
+    def __init__(self, index, indexManager):
+        self._indexSearcher = IndexSearcher(indexManager)
         
     def load_debug_mapping(self, termidMapping):
         self._termidMapping = termidMapping

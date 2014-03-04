@@ -9,8 +9,8 @@ from Logger import Logger
 from SimpleIndex import SimpleIndexReader
 
 class IndexManager:
-       '''if mem is not enough, load high-frequency item to main mem
-          and put them in LRU cache'''
+    '''if mem is not enough, load high-frequency item
+       to main memory and put them in LRU cache'''
     def __init__(self, cacheSize, diskIOThreadNum):
         self._indexCache = Cache(cacheSize)
         self._diskIOManager = DiskIOManager(diskIOThreadNum)
@@ -39,7 +39,7 @@ class IndexManager:
 
     def sync_load(self, fileName):
         indexMap = self._indexReader.read(fileName)
-        for (k, v) in indexMap:
+        for (k, v) in indexMap.get_indexmap().items():
             self._indexCache.add(k, v)
 
     def async_load(self, fileName):
