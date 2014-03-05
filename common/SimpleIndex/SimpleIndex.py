@@ -21,11 +21,11 @@ class SimpleIndex:
     def get_indexmap(self):
         return self._indexMap
 
-    def get_index(self, termId):
+    def fetch(self, termId):
         if termId in self._indexMap:
             return self._indexMap[termId]
         else:
-            return set()
+            return None
 
 class SimpleIndexHandler:
     def __init__(self):
