@@ -46,11 +46,5 @@ class IndexManager:
         #index = diskio result
         #return index, retCode
 
-    def fetch_by_term(self, term):
-        '''this is a test method'''
-        #termid = get_id_from_term(term)
-        #return get_index(termId)
-        pass
-
     def is_ready(self):
         return self._allReady
