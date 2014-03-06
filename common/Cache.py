@@ -4,6 +4,8 @@ from Logger import Logger
 class Cache:
     '''LRU strategy'''
     class Node:
+        __slots__ = ['key', 'val', 'succ', 'prev']
+
         def __init__(self, key, val):
             self.key = key
             self.val = val
