@@ -46,5 +46,8 @@ class IndexManager:
         #index = diskio result
         #return index, retCode
 
+    def get_index(self):
+        return self._mainIndex.get_indexmap()
+
     def is_ready(self):
         return self._allReady
