@@ -1,9 +1,11 @@
 import cPickle as pickle
-import threading
 
 class SimpleIndex:
-    '''SimpleIndex Structure: TermId-DocId1-DocId2-DocId3
-       doesn't contain any relavance score'''
+    '''SimpleIndex Structure: Dict
+       Key:
+       TermId
+       Value:
+       (DocId1, ScoreOfDoc1), (DocId2, ScoreOfDoc2), ...'''
     def __init__(self):
         self._indexMap = {}
 

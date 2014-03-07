@@ -19,25 +19,26 @@ if __name__ == '__main__':
     assert p == set([])
     
     s2 = SimpleIndex()
-    s2.add(1, set([1, 2, 3, 4]))
-    s2.add(2, set([2, 3, 4, 5]))
-    s2.add(3, set([3, 4, 5, 6]))
+    s2.add(1, set([(1, 1.0), (2, 0.9), (3, 0.8), (4, 0.7)]))
+    s2.add(2, set([(2, 0.9), (3, 0.8), (4, 0.7), (5, 0.6)]))
+    s2.add(3, set([(3, 0.8), (4, 0.7), (5, 0.6), (6, 0.5)]))
     h2 = SimpleIndexHandler()
     h2.add(s2.fetch(1))
     h2.add(s2.fetch(2))
     p2 = h2.intersect()
-    assert p2 == set([2, 3, 4])
+    assert p2 == set([(2, 0.9), (3, 0.8), (4, 0.7)])
     p2 = h2.union()
-    assert p2 == set([1, 2, 3, 4, 5])
+    assert p2 == set([(1, 1.0), (2, 0.9), (3, 0.8), (4, 0.7), (5, 0.6)])
     h2.clear()
     assert h2._indexContainer == []
     h2.add(s2.fetch(1))
     h2.add(s2.fetch(2))
     h2.add(s2.fetch(3))
     p3 = h2.intersect()
-    assert p3 == set([3, 4])
+    assert p3 == set([(3, 0.8), (4, 0.7)])
     p3 = h2.union()
-    assert p3 == set([1, 2, 3, 4, 5, 6])
+    assert p3 == set([(1, 1.0), (2, 0.9), (3, 0.8),
+                      (4, 0.7), (5, 0.6), (6, 0.5)])
 
     testIndex = 'test.index'
     writer = SimpleIndexWriter()
