@@ -1,16 +1,16 @@
 #!/usr/bin/python
 
 import os
-from SimpleIndex import *
+from NonCompressIndex import *
 
 if __name__ == '__main__':
-    s = SimpleIndex()
+    s = NonCompressIndex()
     s.add(1, set())
     s.add(2, set())
     assert s.fetch(1) == set()
     assert s.fetch(0) == None
 
-    h = SimpleIndexHandler()
+    h = NonCompressIndexHandler()
     h.add(s.fetch(1))
     h.add(s.fetch(2))
     p = h.intersect()
@@ -18,11 +18,11 @@ if __name__ == '__main__':
     p = h.union()
     assert p == set([])
     
-    s2 = SimpleIndex()
+    s2 = NonCompressIndex()
     s2.add(1, set([(1, 1.0), (2, 0.9), (3, 0.8), (4, 0.7)]))
     s2.add(2, set([(2, 0.9), (3, 0.8), (4, 0.7), (5, 0.6)]))
     s2.add(3, set([(3, 0.8), (4, 0.7), (5, 0.6), (6, 0.5)]))
-    h2 = SimpleIndexHandler()
+    h2 = NonCompressIndexHandler()
     h2.add(s2.fetch(1))
     h2.add(s2.fetch(2))
     p2 = h2.intersect()
@@ -41,9 +41,9 @@ if __name__ == '__main__':
                       (4, 0.7), (5, 0.6), (6, 0.5)])
 
     testIndex = 'test.index'
-    writer = SimpleIndexWriter()
+    writer = NonCompressIndexWriter()
     writer.write(s2, testIndex)
-    reader = SimpleIndexReader()
+    reader = NonCompressIndexReader()
     s2Clone = reader.read(testIndex)
     assert s2.get_indexmap() == s2Clone.get_indexmap()
     assert s.get_indexmap() != s2.get_indexmap()
