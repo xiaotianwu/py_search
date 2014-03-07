@@ -3,6 +3,9 @@
 import random
 import time
 
+from meliae import scanner
+from meliae import loader
+
 from IndexManager import IndexManager
 from IndexSearcher import IndexSearcher
 
@@ -36,7 +39,12 @@ if __name__ == '__main__':
     #print 'create test data finished'
 
     indexManager = IndexManager()
-    time.sleep(100)
+    scanner.dump_all_objects('./dump')
+    mem = loader.load('./dump', show_prog = True, collapse = True)   
+    mem.compute_parents()
+    #mem.collapse_instance_dicts()
+    mem.summarize()
+
     #indexManager.init(testIndexFile)
     #indexSearcher = IndexSearcher(indexManager)
 

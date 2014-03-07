@@ -5,34 +5,18 @@ class NonCompressIndex:
        Key: TermId
        Value: (DocId1, ScoreOfDoc1), (DocId2, ScoreOfDoc2), ...'''
 
-    __slots__ = ['_indexMap', '_minDocId', '_maxDocId']
-
     def __init__(self):
         self._indexMap = {}
-        self._maxDocId = -1
-        self._minDocId = 2 << 64
 
-    # make unit test happy
     def add(self, termId, index):
         if not isinstance(termId, int) and isinstance(index, set):
             raise TypeError('termId must be int and index must be set')
-        for i in index:
-            if len(i) < 2:
-                continue
-            if i[0] > self._maxDocId:
-                self._maxDocId = i[0]
-            if i[0] < self._minDocId:
-                self._minDocId = i[0]
         self._indexMap[termId] = index
 
     def add_termid_docid(self, termId, docid):
         if termId not in self._indexMap:
             self._indexMap[termId] = set()
         self._indexMap[termId].add(docid)
-        if docid > self._maxDocId:
-            self._maxDocId = docid
-        if docid < self._minDocId:
-            self._minDocId = docid
 
     def get_indexmap(self):
         return self._indexMap
@@ -43,22 +27,51 @@ class NonCompressIndex:
         else:
             return None
 
-class NonCompressIndexReader:
-    def read(self, indexFileName):
-        with open(indexFileName, 'rb') as indexMapFile:
-            index = pickle.loads(indexMapFile.read())
-        assert isinstance(index, NonCompressIndex) == True
-        return index
+# NonCompressIndex File Struct
+# PostingList1(TermId1,docid1,score1,docid2,score2...), PostingList2,...
+# Dict of Offset for PostingList
+# TermId1, Offset of PostingList1
+# TermId2, Offset of PostingList2...
+# MD5 checksum
 
 class NonCompressIndexWriter:
     def write(self, indexMap, indexFileName):
         if not isinstance(indexMap, NonCompressIndex):
             raise TypeError('input must be NonCompressIndex')
         # TODO add a MD5 to filename
-        # use binary format
-        indexMapToStore = pickle.dumps(indexMap, True)
-        with open(indexFileName, 'wb') as indexFile:
-            indexFile.write(indexMapToStore)
+        indexFile = open(indexFileName, 'wb')
+        offset = 0
+        indexOffsetMap = {}
+        # write term-postinglist pair first
+        for (k, v) in indexMap.get_indexmap().items():
+            postingList = pickle.dumps((k, v), True)
+            indexFile.write(postingList)
+            indexOffsetMap[k] = (offset, len(postingList))
+            offset += len(postingList)
+        offsetMap = pickle.dumps(indexOffsetMap, True);
+        # then offset map
+        indexFile.write(offsetMap)
+        offsetMapSize = int(len(offsetMap))
+        indexFile.write(offsetMapSize)
+        indexFile.close()
+ 
+class NonCompressIndexReader:
+    def read(self, indexFileName):
+        intLen = int(0).__sizeof__()
+        # load offset map first
+        indexMapFile = open(indexFileName, 'rb')
+        indexMapFile.seek(0 - intLen, 2)
+        offsetMapSize = indexMapFile.read(intLen)
+        indexMapFile.seek(0 - intLen - offsetMapSize, 2)
+        offsetMap = pickle.loads(indexMapFile.read(offsetMapSize))
+        # then postinglist
+        # TODO make the storage of index offset sequentially
+        index = NonCompressIndex()
+        for (termid, offset) in offsetMap:
+            indexMapFile.seek(offset[0], 0)
+            index.add(termid, pickle.loads(indexMapFile.read(offset[1]))
+        indexMapFile.close()
+        return index
 
 class NonCompressIndexHandler:
     def __init__(self):
