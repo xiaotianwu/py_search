@@ -13,7 +13,7 @@ if __name__ == '__main__':
     parser.close()
 
     parser = TermExtractor()
-    parser.set_stopwords('StopWordsList.txt')
+    parser.SetStopwords('StopWordsList.txt')
     print('stop words = ', parser.stopwords)
     fileName = 'Sample.yahoo.html'
     parser.feed(open(fileName, 'r').read())

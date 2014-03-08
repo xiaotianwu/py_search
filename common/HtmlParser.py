@@ -10,7 +10,7 @@ class WordBreaker:
     def __init__(self):
         pass
 
-    def split(self, sentence):
+    def Split(self, sentence):
         pass
 
 # a simple wordbreaker based on space splitting, will be moved to common folder later
@@ -18,7 +18,7 @@ class SimpleWordBreaker(WordBreaker):
     def __init__(self):
         pass
 
-    def split(self, sentence):
+    def Split(self, sentence):
         return sentence.split(' ')
 
 class TermExtractor(HTMLParser):
@@ -29,7 +29,7 @@ class TermExtractor(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
         self._wordBreaker = SimpleWordBreaker()
-        self._logger = Logger.get('HtmlParser')
+        self._logger = Logger.Get('HtmlParser')
         self.term = set()
         self.stopwords = set()
 
@@ -41,7 +41,7 @@ class TermExtractor(HTMLParser):
         finally:
             self.term.clear()
 
-    def set_stopwords(self, stopwordsFileName):
+    def SetStopwords(self, stopwordsFileName):
         languageSectionRegex = re.compile('\[[a-z][a-z]\-[a-z][a-z]\]')
         with open(stopwordsFileName, 'r') as stopwordsFile:
             for line in stopwordsFile.readlines():
@@ -51,7 +51,7 @@ class TermExtractor(HTMLParser):
                 self.stopwords.add(
                     line.replace('\r', '').replace('\n', '').lower())
 
-    def filter_word(self, word):
+    def FilterWord(self, word):
         word = word.strip().lower()
         if len(word) == 0 or word in self.stopwords:
             return None
@@ -75,9 +75,9 @@ class TermExtractor(HTMLParser):
         try:
             self._logger.debug("Data = " + data)
             if self.__tagClassification in ('LINK', 'TEXT'):
-                words = self._wordBreaker.split(data);
+                words = self._wordBreaker.Split(data);
                 for word in words:
-                    word = self.filter_word(word)
+                    word = self.FilterWord(word)
                     if word != None:
                         self.term.add(word)
         except Exception as exception:
@@ -90,7 +90,7 @@ class LinkExtractor(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
         self.link = set()
-        self._logger = Logger.get('HtmlParser')
+        self._logger = Logger.Get('HtmlParser')
 
     def handle_starttag(self, tag, attrs):
         if self.__linkTagRegex.match(tag):
