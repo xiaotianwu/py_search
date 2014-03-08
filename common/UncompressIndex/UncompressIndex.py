@@ -1,9 +1,7 @@
 import cPickle as pickle
-import sys
-sys.path.append('..')
 
-from Common import LeftPadding
-from Logger import Logger
+from common.Common import LeftPadding
+from common.Logger import Logger
 
 class UncompressIndex:
     '''UncompressIndex Structure: Dict

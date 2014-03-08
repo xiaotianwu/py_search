@@ -1,5 +1,3 @@
-#!/bin/sh
-
+export PY_SEARCH_ROOT=`pwd`
 echo $PY_SEARCH_ROOT
-
-# test update
+export PYTHONPATH=$PYTHONPATH:$PY_SEARCH_ROOT
