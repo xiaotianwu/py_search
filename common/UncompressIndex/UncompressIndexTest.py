@@ -1,7 +1,24 @@
 #!/usr/bin/python
 
 import os
+import random
+
 from UncompressIndex import *
+
+randomIndexLen = 1000
+
+def gen_random_index():
+    i = 0
+    s = set()
+    while i < randomIndexLen:
+        (item1, item2) = (random.randint(0, 10000),
+                          random.randint(0, 10000))
+        if (item1, item2) in s:
+            continue
+        else:
+            s.add((item1, item2))
+            i += 1
+    return s
 
 if __name__ == '__main__':
     s = UncompressIndex()
@@ -40,11 +57,21 @@ if __name__ == '__main__':
     assert p3 == set([(1, 1.0), (2, 0.9), (3, 0.8),
                       (4, 0.7), (5, 0.6), (6, 0.5)])
 
-    testIndex = 'test.index'
+    testIndex = 'tiny.index'
     writer = UncompressIndexWriter()
     writer.write(s2, testIndex)
     reader = UncompressIndexReader()
     s2Clone = reader.read(testIndex)
     assert s2.get_indexmap() == s2Clone.get_indexmap()
     assert s.get_indexmap() != s2.get_indexmap()
+    os.remove(testIndex)
+
+    s3 = UncompressIndex()
+    for i in range(0, 1000):
+        s3.add(i, gen_random_index())
+    testIndex = 'large.index'
+    writer.write(s3, testIndex)
+    reader = UncompressIndexReader()
+    s3Clone = reader.read(testIndex)
+    assert s3.get_indexmap() == s3Clone.get_indexmap()
     os.remove(testIndex)

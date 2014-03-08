@@ -48,53 +48,53 @@ UINT32_STR_LEN= 32
 
 class UncompressIndexWriter:
     def __init__(self):
-        self._logger = Logger.get('IndexReadWrite')
+        self._logger = Logger.get('UncompressIndexWriter')
 
     def write(self, indexMap, indexFileName):
         if not isinstance(indexMap, UncompressIndex):
             raise TypeError('input must be UncompressIndex')
-        self._logger.debug('write UncompressIndex file: ' + indexFileName)
+        self._logger.info('write UncompressIndex file: ' + indexFileName)
         indexFile = open(indexFileName, 'wb')
         offset = 0
         indexOffsetMap = {}
 
         # write term-postinglist pair first
         for (term, index) in indexMap.get_indexmap().items():
-            print index
+            self._logger.debug('write termid = ' + str(term) +
+                               ' index = ' + str(index))
             postingList = pickle.dump(index, indexFile, 2)
             length = indexFile.tell() - offset
             indexOffsetMap[term] = (offset, length)
             offset = indexFile.tell()
-        print indexOffsetMap
-        self._logger.debug('index create finished')
+        self._logger.info('index write finished')
 
         # then offset map
         offsetMap = pickle.dump(indexOffsetMap, indexFile, 2);
         offsetMapSize = str(indexFile.tell() - offset)
-        self._logger.debug('offset map len: ' + offsetMapSize)
+        self._logger.info('offset map write len: ' + offsetMapSize)
         offsetMapSize = left_padding(offsetMapSize, UINT32_STR_LEN)
         indexFile.write(offsetMapSize)
 
         # TODO need checksum
         indexFile.close()
-        self._logger.debug('finish write')
+        self._logger.info('finish write')
  
 class UncompressIndexReader:
     def __init__(self):
-        self._logger = Logger.get('IndexReadWrite')
+        self._logger = Logger.get('UncompressIndexReader')
 
     def read(self, indexFileName):
         # load offset map first
-        self._logger.debug('read UncompressIndex file: ' + indexFileName)
+        self._logger.info('read UncompressIndex file: ' + indexFileName)
         indexMapFile = open(indexFileName, 'rb')
         indexMapFile.seek(-UINT32_STR_LEN, 2)
         offsetMapSize = int(indexMapFile.read(UINT32_STR_LEN))
-        self._logger.debug('offset map len: ' + str(offsetMapSize))
+        self._logger.info('read offset map len: ' + str(offsetMapSize))
 
         indexMapFile.seek(0 - UINT32_STR_LEN - offsetMapSize, 2)
         offsetMap = pickle.loads(indexMapFile.read(offsetMapSize))
-        print offsetMap
-        self._logger.debug('offset map read finished')
+        self._logger.debug('offsetMap = ' + str(offsetMap))
+        self._logger.info('offset map read finished')
         if not isinstance(offsetMap, dict):
             raise TypeError('offset map read failed')
 
@@ -102,7 +102,8 @@ class UncompressIndexReader:
         # TODO make the storage of index offset sequentially
         index = UncompressIndex()
         for (termid, offset) in offsetMap.items():
-            print termid, offset
+            self._logger.debug('read termid = ' + str(termid) +
+                               ' (offset, len) = ' + str(offset))
             indexMapFile.seek(offset[0], 0)
             postingList = pickle.loads(indexMapFile.read(offset[1]))
             if not isinstance(postingList, set):
@@ -111,8 +112,7 @@ class UncompressIndexReader:
             index.add(termid, postingList)
 
         indexMapFile.close()
-        print index.get_indexmap()
-        self._logger.debug('finish read')
+        self._logger.info('finish read')
         return index
 
 class UncompressIndexHandler:
