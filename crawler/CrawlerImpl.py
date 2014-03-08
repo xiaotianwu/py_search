@@ -2,15 +2,13 @@
 import os.path
 import Queue
 import re
-import sys
 import threading
 import time
 import urllib2
-sys.path.append('../common')
 
-from Common import UrlFileNameConverter
-from HtmlParser import LinkExtractor
-from Logger import Logger
+from common.Common import UrlFileNameConverter
+from common.HtmlParser import LinkExtractor
+from common.Logger import Logger
 
 # global chunk path
 pageChunkPath = '../page_chunk/'
