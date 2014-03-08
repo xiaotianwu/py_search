@@ -59,6 +59,7 @@ class UncompressIndexWriter:
         indexOffsetMap = {}
 
         # write term-postinglist pair first
+        # TODO make the storage of index offset sequentially
         for (term, index) in indexMap.get_indexmap().items():
             self._logger.debug('write termid = ' + str(term) +
                                ' index = ' + str(index))
@@ -82,38 +83,65 @@ class UncompressIndexWriter:
 class UncompressIndexReader:
     def __init__(self):
         self._logger = Logger.get('UncompressIndexReader')
+        self._offsetMap = None
+        self._indexFileDesc = None
+        self._indexFileName = None
 
-    def read(self, indexFileName):
-        # load offset map first
-        self._logger.info('read UncompressIndex file: ' + indexFileName)
-        indexMapFile = open(indexFileName, 'rb')
-        indexMapFile.seek(-UINT32_STR_LEN, 2)
-        offsetMapSize = int(indexMapFile.read(UINT32_STR_LEN))
+    def load(self, indexFileName):
+        '''open index file and get the mapping of postingList offset'''
+        self._logger.info('load UncompressIndex file: ' + indexFileName)
+        self._indexFileDesc = open(indexFileName, 'rb')
+        self._indexFileName = indexFileName
+        self._indexFileDesc.seek(-UINT32_STR_LEN, 2)
+        offsetMapSize = int(self._indexFileDesc.read(UINT32_STR_LEN))
         self._logger.info('read offset map len: ' + str(offsetMapSize))
 
-        indexMapFile.seek(0 - UINT32_STR_LEN - offsetMapSize, 2)
-        offsetMap = pickle.loads(indexMapFile.read(offsetMapSize))
-        self._logger.debug('offsetMap = ' + str(offsetMap))
+        self._indexFileDesc.seek(0 - UINT32_STR_LEN - offsetMapSize, 2)
+        self._offsetMap = pickle.loads(self._indexFileDesc.read(offsetMapSize))
+        self._logger.debug('self._offsetMap = ' + str(self._offsetMap))
         self._logger.info('offset map read finished')
-        if not isinstance(offsetMap, dict):
+        if not isinstance(self._offsetMap, dict):
             raise TypeError('offset map read failed')
 
-        # then postinglist
-        # TODO make the storage of index offset sequentially
+    def read_all(self):
+        '''get the entire UncompressIndex from the file'''
         index = UncompressIndex()
-        for (termid, offset) in offsetMap.items():
+        for (termid, value) in self._offsetMap.items():
             self._logger.debug('read termid = ' + str(termid) +
-                               ' (offset, len) = ' + str(offset))
-            indexMapFile.seek(offset[0], 0)
-            postingList = pickle.loads(indexMapFile.read(offset[1]))
+                               ' (value, len) = ' + str(value))
+            self._indexFileDesc.seek(value[0], 0)
+            postingList = pickle.loads(self._indexFileDesc.read(value[1]))
             if not isinstance(postingList, set):
                 raise TypeError('postingList for ' +
                                 str(termid) + ' load failed')
             index.add(termid, postingList)
 
-        indexMapFile.close()
         self._logger.info('finish read')
         return index
+
+    def read(self, termid):
+        '''read specified postinglist by term id'''
+        if termid in self._offsetMap:
+            self._logger.debug('read termid: ' + str(termid) +
+                               ' from indexFile: ' + self._indexFileName)
+            offset = self._offsetMap[termid][0]
+            length = self._offsetMap[termid][1]
+            self._indexFileDesc.seek(offset, 0)
+            return pickle.loads(self._indexFileDesc.read(length))
+        else:
+            self._logger.debug('termid: ' + str(termid) +
+                               ' not in indexFile: ' + self._indexFileName)
+            return None
+
+    def unload(self):
+        del self._offsetMap
+        self._offsetMap = None
+        self._indexFileDesc.close()
+        del self._indexFileDesc
+        self._indexFileDesc = None
+        self._logger.info('unload UncompressIndex file: ' +
+                          self._indexFileName)
+        self._indexFilename = None
 
 class UncompressIndexHandler:
     def __init__(self):

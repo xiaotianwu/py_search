@@ -61,9 +61,14 @@ if __name__ == '__main__':
     writer = UncompressIndexWriter()
     writer.write(s2, testIndex)
     reader = UncompressIndexReader()
-    s2Clone = reader.read(testIndex)
+    reader.load(testIndex)
+    s2Clone = reader.read_all()
     assert s2.get_indexmap() == s2Clone.get_indexmap()
     assert s.get_indexmap() != s2.get_indexmap()
+    assert reader.read(1) == set([(1, 1.0), (2, 0.9), (3, 0.8), (4, 0.7)])
+    assert reader.read(2) == set([(2, 0.9), (3, 0.8), (4, 0.7), (5, 0.6)])
+    assert reader.read(3) == set([(3, 0.8), (4, 0.7), (5, 0.6), (6, 0.5)])
+    reader.unload()
     os.remove(testIndex)
 
     s3 = UncompressIndex()
@@ -72,6 +77,14 @@ if __name__ == '__main__':
     testIndex = 'large.index'
     writer.write(s3, testIndex)
     reader = UncompressIndexReader()
-    s3Clone = reader.read(testIndex)
+    reader.load(testIndex)
+    s3Clone = reader.read_all()
     assert s3.get_indexmap() == s3Clone.get_indexmap()
+    reader.unload()
+
+    reader.load(testIndex)
+    for i in range(0, 1000):
+        assert reader.read(i) == s3.fetch(i)
+    reader.unload()
+
     os.remove(testIndex)
