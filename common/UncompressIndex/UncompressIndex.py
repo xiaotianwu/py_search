@@ -2,7 +2,7 @@ import cPickle as pickle
 import sys
 sys.path.append('..')
 
-from Common import left_padding
+from Common import LeftPadding
 from Logger import Logger
 
 class UncompressIndex:
@@ -13,20 +13,20 @@ class UncompressIndex:
     def __init__(self):
         self._indexMap = {}
 
-    def add(self, termId, index):
+    def Add(self, termId, index):
         if not isinstance(termId, int) and isinstance(index, set):
             raise TypeError('termId must be int and index must be set')
         self._indexMap[termId] = index
 
-    def add_termid_docid(self, termId, docid):
+    def AddTermDocPair(self, termId, docid):
         if termId not in self._indexMap:
             self._indexMap[termId] = set()
         self._indexMap[termId].add(docid)
 
-    def get_indexmap(self):
+    def GetIndexMap(self):
         return self._indexMap
 
-    def fetch(self, termId):
+    def Fetch(self, termId):
         if termId in self._indexMap:
             return self._indexMap[termId]
         else:
@@ -48,9 +48,9 @@ UINT32_STR_LEN= 32
 
 class UncompressIndexWriter:
     def __init__(self):
-        self._logger = Logger.get('UncompressIndexWriter')
+        self._logger = Logger.Get('UncompressIndexWriter')
 
-    def write(self, indexMap, indexFileName):
+    def Write(self, indexMap, indexFileName):
         if not isinstance(indexMap, UncompressIndex):
             raise TypeError('input must be UncompressIndex')
         self._logger.info('write UncompressIndex file: ' + indexFileName)
@@ -60,7 +60,7 @@ class UncompressIndexWriter:
 
         # write term-postinglist pair first
         # TODO make the storage of index offset sequentially
-        for (term, index) in indexMap.get_indexmap().items():
+        for (term, index) in indexMap.GetIndexMap().items():
             self._logger.debug('write termid = ' + str(term) +
                                ' index = ' + str(index))
             postingList = pickle.dump(index, indexFile, 2)
@@ -73,7 +73,7 @@ class UncompressIndexWriter:
         offsetMap = pickle.dump(indexOffsetMap, indexFile, 2);
         offsetMapSize = str(indexFile.tell() - offset)
         self._logger.info('offset map write len: ' + offsetMapSize)
-        offsetMapSize = left_padding(offsetMapSize, UINT32_STR_LEN)
+        offsetMapSize = LeftPadding(offsetMapSize, UINT32_STR_LEN)
         indexFile.write(offsetMapSize)
 
         # TODO need checksum
@@ -82,14 +82,14 @@ class UncompressIndexWriter:
  
 class UncompressIndexReader:
     def __init__(self):
-        self._logger = Logger.get('UncompressIndexReader')
+        self._logger = Logger.Get('UncompressIndexReader')
         self._offsetMap = None
         self._indexFileDesc = None
         self._indexFileName = None
 
-    def load(self, indexFileName):
+    def Open(self, indexFileName):
         '''open index file and get the mapping of postingList offset'''
-        self._logger.info('load UncompressIndex file: ' + indexFileName)
+        self._logger.info('open UncompressIndex file: ' + indexFileName)
         self._indexFileDesc = open(indexFileName, 'rb')
         self._indexFileName = indexFileName
         self._indexFileDesc.seek(-UINT32_STR_LEN, 2)
@@ -103,7 +103,7 @@ class UncompressIndexReader:
         if not isinstance(self._offsetMap, dict):
             raise TypeError('offset map read failed')
 
-    def read_all(self):
+    def ReadAll(self):
         '''get the entire UncompressIndex from the file'''
         index = UncompressIndex()
         for (termid, value) in self._offsetMap.items():
@@ -113,13 +113,13 @@ class UncompressIndexReader:
             postingList = pickle.loads(self._indexFileDesc.read(value[1]))
             if not isinstance(postingList, set):
                 raise TypeError('postingList for ' +
-                                str(termid) + ' load failed')
-            index.add(termid, postingList)
+                                str(termid) + ' open failed')
+            index.Add(termid, postingList)
 
         self._logger.info('finish read')
         return index
 
-    def read(self, termid):
+    def Read(self, termid):
         '''read specified postinglist by term id'''
         if termid in self._offsetMap:
             self._logger.debug('read termid: ' + str(termid) +
@@ -133,13 +133,13 @@ class UncompressIndexReader:
                                ' not in indexFile: ' + self._indexFileName)
             return None
 
-    def unload(self):
+    def Close(self):
         del self._offsetMap
         self._offsetMap = None
         self._indexFileDesc.close()
         del self._indexFileDesc
         self._indexFileDesc = None
-        self._logger.info('unload UncompressIndex file: ' +
+        self._logger.info('close UncompressIndex file: ' +
                           self._indexFileName)
         self._indexFilename = None
 
@@ -147,20 +147,20 @@ class UncompressIndexHandler:
     def __init__(self):
         self._indexContainer = []
 
-    def clear(self):
+    def Clear(self):
         self._indexContainer = []
 
-    def add(self, index):
+    def Add(self, index):
         self._indexContainer.append(index)
 
-    def intersect(self):
+    def Intersect(self):
         assert len(self._indexContainer) >= 2
         result = self._indexContainer[0] & self._indexContainer[1]
         for i in range(2, len(self._indexContainer)):
             result &= self._indexContainer[i]
         return result
 
-    def union(self):
+    def Union(self):
         assert len(self._indexContainer) >= 2
         result = self._indexContainer[0] | self._indexContainer[1]
         for i in range(2, len(self._indexContainer)):

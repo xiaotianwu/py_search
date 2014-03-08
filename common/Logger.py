@@ -11,7 +11,7 @@ class Logger:
     __loggingFile = os.environ['PY_SEARCH_ROOT'] + '/common/Logger.conf'
     
     @staticmethod
-    def get(name):
+    def Get(name):
         Logger.__loggersLock.acquire()
         if Logger.__init == False:
             assert os.path.exists(Logger.__loggingFile) == True 

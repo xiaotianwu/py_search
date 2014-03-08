@@ -18,35 +18,35 @@ class Cache:
         self._hashTable = {}
         self._maxElemNum = maxElemNum
         self._curElemNum = 0
-        self._logger = Logger.get('LRU')
+        self._logger = Logger.Get('LRU')
 
-    def clear(self):
+    def Clear(self):
         self._chunkHead = None
         self._chunkTail = None
         self._hashTable.clear()
         self._curElemNum = 0
        
-    def fetch(self, key):
+    def Fetch(self, key):
         self._logger.debug('fetch ' + str(self._hashTable))
         if key in self._hashTable:
-            self._update(key)
+            self._Update(key)
             return self._hashTable[key].val
         else:
             return None
 
-    def add(self, key, value):
+    def Add(self, key, value):
         newNode = Cache.Node(key, value)
         self._hashTable[key] = newNode
         self._logger.debug('add ' + str(self._hashTable))
         if self._curElemNum == self._maxElemNum:
             self._logger.debug('remove ' + str(self._head().key))
             self._hashTable.pop(self._head().key)
-            self._pop()
+            self._Pop()
         else:
             self._curElemNum += 1
-        self._push(newNode)
+        self._Push(newNode)
 
-    def remove(self, key):
+    def Remove(self, key):
         nodeToDel = self._hashTable[key]
         if nodeToDel == self._chunkHead:
             self._chunkHead = self._chunkHead.succ
@@ -63,7 +63,7 @@ class Cache:
     def capacity(self):
         return self._maxElemNum
 
-    def _update(self, key):
+    def _Update(self, key):
         cur = self._hashTable[key]
         if cur == self._chunkTail:
             return
@@ -84,7 +84,7 @@ class Cache:
     def _tail(self):
         return self._chunkTail
 
-    def _pop(self):
+    def _Pop(self):
         top = self._chunkHead
         self._chunkHead = self._chunkHead.succ
         if self._chunkHead == None:
@@ -97,7 +97,7 @@ class Cache:
                            if self._chunkTail == None\
                            else str(self._chunkTail.key))
 
-    def _push(self, node):
+    def _Push(self, node):
         if self._chunkHead == None:
             self._chunkHead = node
         if self._chunkTail != None:
@@ -114,20 +114,20 @@ class ThreadSafeCache:
         self._cache = Cache(maxElemNum)
         self._lock = threading.RLock()
 
-    def find(self, key):
-        return self._cache.find(key)
+    def Fetch(self, key):
+        return self._cache.Fetch(key)
   
-    def clear(self):
+    def Clear(self):
         self._lock.acquire()
-        self._cache.clear()
+        self._cache.Clear()
         self._locak.release()
 
-    def add(self, key, value):
+    def Add(self, key, value):
         self._lock.acquire()
-        self._cache.add(key, value)
+        self._cache.Add(key, value)
         self._lock.release()
 
-    def remove(self, key):
+    def Remove(self, key):
         self._lock.acquire()
-        self._cache.remove(key)
+        self._cache.Remove(key)
         self._lock.release()
