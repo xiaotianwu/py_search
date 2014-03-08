@@ -27,6 +27,22 @@ def call_back(decoratedFunc):
     '''it's just a qualifier'''
     return decoratedFunc
 
+def left_padding(string, length, paddingChar = ' '):
+    '''if string is abc, length is 5
+       paddingChar is *, output is **abc'''
+    if len(string) >= length:
+        return string
+    else:
+        return paddingChar * (length - len(string)) + string
+
+def right_padding(string, length, paddingChar = ' '):
+    '''if string is abc, length is 5
+       paddingChar is *, output is abc**'''
+    if len(string) >= length:
+        return string
+    else:
+        return string + paddingChar * (length - len(string))
+
 class UrlFileNameConverter:
     @staticmethod
     def url_to_filename(url):

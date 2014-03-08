@@ -3,11 +3,7 @@
 import os
 import time
 
-from Common import async
-from Common import call_back
-from Common import DirHandler
-from Common import InitThreadPool
-from Common import UninitThreadPool
+from Common import *
 from Common import UrlFileNameConverter as Converter
 
 @call_back
@@ -39,6 +35,11 @@ def delete_testdata():
     os.system('rm emptypath -r')
 
 if __name__ == '__main__':
+    assert left_padding('abc', 5) == '  abc'
+    assert left_padding('abc', 3) == 'abc'
+    assert right_padding('abc', 5) == 'abc  '
+    assert right_padding('abc', 3) == 'abc'
+
     create_testdata()
 
     files = DirHandler.get_all_files('./empthpath', recursive = True)
