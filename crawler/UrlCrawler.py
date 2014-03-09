@@ -10,20 +10,21 @@ from common.HtmlParser import LinkExtractor
 from common.Logger import Logger
 
 class UrlCrawler:
-    __proxies = None
+    __seedUrl = None
     __DownloadPath = None
+    __proxies = None
     __globalInit = False
     __globalLock = threading.RLock()
-    __seedUrl = None
     __urlQueue = Queue.Queue()
     __urlChunk = set()
     __urlChunkLock = threading.RLock()
+    __urlDumper = None
    
     @staticmethod
     def GlobalInit(seedUrl,
-                   downloadPath = pageChunkPath,
+                   downloadPath,
                    proxies = {}):
-        '''called once in the program'''
+        '''called at first in the program'''
         UrlCrawler.__globalLock.acquire()
 
         if UrlCrawler.__globalInit == True:
@@ -40,12 +41,12 @@ class UrlCrawler:
         UrlCrawler.__DownloadPath = downloadPath
         UrlCrawler.__seedUrl = seedUrl
         UrlCrawler.__urlQueue.put(seedUrl)
+        UrlCrawler.__urlDumper = UrlDumper(downloadPath)
         UrlCrawler.__globalInit = True
 
         UrlCrawler.__globalLock.release()
 
     def __init__(self):
-        self._urlPages = {}
         self._init = False
         self._logger = Logger.Get('UrlCrawler')
         self._parser = LinkExtractor()
@@ -66,9 +67,6 @@ class UrlCrawler:
         self._logger.info('crawl interval: '+ str(self._crawlInterval))
         self._logger.info('crawl timeout: '+ str(self._timeout))
         self._logger.info('parser type: ' + str(type(self._parser)))
-
-    def SetDownloadPath(self, path):
-        self._path = path
 
     def _Parse(self, page):
         self._parser.link.clear()
@@ -134,29 +132,23 @@ class UrlCrawler:
                 self._logger.info('can not download: ' + url)
                 continue
 
-            # TODO make the file io async
-            fileName = UrlFileNameConverter.url_to_filename(url)
-
-            # TODO convert to file name to MD5
-            if len(fileName) > 250:
-                continue
-            self._logger.info('convert to file:' + fileName)
-            with open(self._path + fileName, 'w') as pageFile:
-                pageFile.write(page)
             link = self._Parse(page)
             for l in link:
-                if (l is not None and l not in UrlCrawler.__urlChunk and
-                       self._FilterUrl(l) is True):
+                if (l is not None and
+                    l not in UrlCrawler.__urlChunk and
+                    self._FilterUrl(l) == True):
                     UrlCrawler.__urlQueue.put(l)
-            self._urlPages[url] = page
+            # Dumper should be thread-safe
+            UrlCrawler.__urlDumper.write(url, page)
             i += 1
+
             self._logger.info('sleep' + str(self._crawlInterval) + 'seconds')
             time.sleep(self._crawlInterval)
 
 class UrlCrawlingThread(threading.Thread):
-    def __init__(self, debug = False):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self._crawler = UrlCrawler(debug)
+        self._crawler = UrlCrawler()
 
     def Init(self, pagesLimit = 10,
              crawlInterval = 1, timeout = 5,
