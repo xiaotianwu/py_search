@@ -30,7 +30,7 @@ class UrlDumper:
         UrlDumper.__path = chunkPath
         if USE_LEVELDB == True:
             dbFolder = UrlDumper.__path + '/' + leveldbFolder
-            UrlDumper.__logger.info('use leveldb, create folder:' + dbFolder)
+            UrlDumper.__logger.info('use leveldb, create db folder:' + dbFolder)
             UrlDumper.__db = leveldb.LevelDB(dbFolder)
         else:
             UrlDumper.__logger.info('use plain storage file')

@@ -8,22 +8,20 @@ import urllib2
 
 from common.HtmlParser import LinkExtractor
 from common.Logger import Logger
+from UrlDumper import UrlDumper
 
 class UrlCrawler:
     __seedUrl = None
-    __DownloadPath = None
+    __downloadPath = None
     __proxies = None
     __globalInit = False
     __globalLock = threading.RLock()
     __urlQueue = Queue.Queue()
     __urlChunk = set()
     __urlChunkLock = threading.RLock()
-    __urlDumper = None
    
     @staticmethod
-    def GlobalInit(seedUrl,
-                   downloadPath,
-                   proxies = {}):
+    def GlobalInit(seedUrl, downloadPath, proxies = {}):
         '''called at first in the program'''
         UrlCrawler.__globalLock.acquire()
 
@@ -38,10 +36,10 @@ class UrlCrawler:
 
         if not os.path.exists(downloadPath):
             os.mkdir(downloadPath)
-        UrlCrawler.__DownloadPath = downloadPath
+        UrlCrawler.__downloadPath = downloadPath
         UrlCrawler.__seedUrl = seedUrl
         UrlCrawler.__urlQueue.put(seedUrl)
-        UrlCrawler.__urlDumper = UrlDumper(downloadPath)
+        UrlDumper.Init(downloadPath, 'url_and_page')
         UrlCrawler.__globalInit = True
 
         UrlCrawler.__globalLock.release()
@@ -57,7 +55,6 @@ class UrlCrawler:
         self._crawlInterval = crawlInterval
         self._timeout = timeout
         self._urlFilterRegexCollection = urlFilterRegexCollection
-        self._path = UrlCrawler.__DownloadPath
         self._init = True
 
     def PrintParams(self):
@@ -79,6 +76,8 @@ class UrlCrawler:
         return self._parser.link
 
     def _FilterUrl(self, url):
+        if self._urlFilterRegexCollection == None:
+            return True
         for regex in self._urlFilterRegexCollection:
             if regex.match(url):
                 return True
@@ -87,12 +86,12 @@ class UrlCrawler:
     def _Download(self, url):
         page = None
         try:
-            self._logger.info('urlopen' + url)
+            self._logger.info('urlopen ' + url)
             urlObject = urllib2.urlopen(url, timeout = self._timeout)
-            self._logger.info('read url' + url)
+            self._logger.info('read url ' + url)
             page = urlObject.read()
             urlObject.close()
-            self._logger.info('finish reading' + url)
+            self._logger.info('finish reading ' + url)
         except Exception as exception:
             print exception
             page = None
@@ -109,14 +108,15 @@ class UrlCrawler:
 
     def Run(self):
         if UrlCrawler.__globalInit == False or self._init == False:
-            self._logger.error('crawler not init')
-            return
+            raise Exception('call GlobalInit before start crawling')
         self.PrintParams()
         self._logger.info('start crawling...')
 
         i = 0
         while i < self._pagesLimit:
             url = UrlCrawler.__urlQueue.get(timeout = 60)
+            if url == None:
+                return
             url = url.strip(' /?')
 
             UrlCrawler.__urlChunkLock.acquire()
@@ -126,24 +126,27 @@ class UrlCrawler:
             UrlCrawler.__urlChunk.add(url)
             UrlCrawler.__urlChunkLock.release()
 
-            self._logger.info('current crawling: ' + url)
+            self._logger.info('current downloading: ' + url)
             page = self._Download(url)
             if page == None:
                 self._logger.info('can not download: ' + url)
                 continue
 
-            link = self._Parse(page)
-            for l in link:
-                if (l is not None and
-                    l not in UrlCrawler.__urlChunk and
-                    self._FilterUrl(l) == True):
-                    UrlCrawler.__urlQueue.put(l)
-            # Dumper should be thread-safe
-            UrlCrawler.__urlDumper.write(url, page)
-            i += 1
+            linkList = self._Parse(page)
+            print 'size of links =', len(linkList)
+            for link in linkList:
+                if (link is not None and
+                    link not in UrlCrawler.__urlChunk and
+                    self._FilterUrl(link) == True):
+                    UrlCrawler.__urlQueue.put(link)
+            UrlDumper.Write(url, page)
 
-            self._logger.info('sleep' + str(self._crawlInterval) + 'seconds')
+            i += 1
+            self._logger.info('sleep ' + str(self._crawlInterval) + ' seconds')
             time.sleep(self._crawlInterval)
+
+    def GetUrlChunk(self):
+        return UrlCrawler.__urlChunk
 
 class UrlCrawlingThread(threading.Thread):
     def __init__(self):
@@ -152,7 +155,7 @@ class UrlCrawlingThread(threading.Thread):
 
     def Init(self, pagesLimit = 10,
              crawlInterval = 1, timeout = 5,
-             urlFilterRegexCollection = [re.compile('.*')])
+             urlFilterRegexCollection = [re.compile('.*')]):
         self._crawler.Init(pagesLimit, crawlInterval,
                            timeout, urlFilterRegexCollection)
 
