@@ -6,15 +6,8 @@ import threading
 import time
 import urllib2
 
-from common.Common import UrlFileNameConverter
 from common.HtmlParser import LinkExtractor
 from common.Logger import Logger
-
-# global chunk path
-pageChunkPath = '../page_chunk/'
-# global url chunk
-urlChunk = set()
-urlChunkLock = threading.RLock()
 
 class UrlCrawler:
     __proxies = None
@@ -23,12 +16,14 @@ class UrlCrawler:
     __globalLock = threading.RLock()
     __seedUrl = None
     __urlQueue = Queue.Queue()
+    __urlChunk = set()
+    __urlChunkLock = threading.RLock()
    
     @staticmethod
     def GlobalInit(seedUrl,
                    downloadPath = pageChunkPath,
                    proxies = {}):
-        '''called only once in the program'''
+        '''called once in the program'''
         UrlCrawler.__globalLock.acquire()
 
         if UrlCrawler.__globalInit == True:
@@ -65,12 +60,12 @@ class UrlCrawler:
         self._init = True
 
     def PrintParams(self):
-        self._logger.info('seed url: '+ UrlCrawler.__seedUrl);
-        self._logger.info('proxies: ' + str(UrlCrawler.__proxies));
-        self._logger.info('crawl pages limit: '+ str(self._pagesLimit));
-        self._logger.info('crawl interval: '+ str(self._crawlInterval));
-        self._logger.info('crawl timeout: '+ str(self._timeout));
-        self._logger.info('parser type: ' + str(type(self._parser)));
+        self._logger.info('seed url: '+ UrlCrawler.__seedUrl)
+        self._logger.info('proxies: ' + str(UrlCrawler.__proxies))
+        self._logger.info('crawl pages limit: '+ str(self._pagesLimit))
+        self._logger.info('crawl interval: '+ str(self._crawlInterval))
+        self._logger.info('crawl timeout: '+ str(self._timeout))
+        self._logger.info('parser type: ' + str(type(self._parser)))
 
     def SetDownloadPath(self, path):
         self._path = path
@@ -118,40 +113,30 @@ class UrlCrawler:
         if UrlCrawler.__globalInit == False or self._init == False:
             self._logger.error('crawler not init')
             return
-        self.print_params()
-        self._logger.info('start running...')
+        self.PrintParams()
+        self._logger.info('start crawling...')
+
         i = 0
         while i < self._pagesLimit:
-            have_sleep = False
-            while UrlCrawler.__urlQueue.empty() == True:
-                if have_sleep == True:
-                    self._logger.info('exit crawler')
-                    return
-                time.sleep(20)
-                # sleeping only once
-                have_sleep = True;
-            else:                    
-                url = UrlCrawler.__urlQueue.get()
-            # double check
-            if url == None:
-                return
-            # delete the unuseful character in head/tail
+            url = UrlCrawler.__urlQueue.get(timeout = 60)
             url = url.strip(' /?')
-            global urlChunk
-            global urlChunkLock
-            urlChunkLock.acquire()
-            if url in urlChunk:
-                self._logger.info('url:' + url + 'has been scanned')
+
+            UrlCrawler.__urlChunkLock.acquire()
+            if url in UrlCrawler.__urlChunk:
+                self._logger.info('url: ' + url + ' has been scanned, skip it')
                 continue
-            urlChunk.add(url)
-            urlChunkLock.release()
-            self._logger.info('current crawling:' + url)
+            UrlCrawler.__urlChunk.add(url)
+            UrlCrawler.__urlChunkLock.release()
+
+            self._logger.info('current crawling: ' + url)
             page = self._Download(url)
             if page == None:
-                self._logger.info('can not download:' + url)
+                self._logger.info('can not download: ' + url)
                 continue
+
             # TODO make the file io async
             fileName = UrlFileNameConverter.url_to_filename(url)
+
             # TODO convert to file name to MD5
             if len(fileName) > 250:
                 continue
@@ -160,7 +145,7 @@ class UrlCrawler:
                 pageFile.write(page)
             link = self._Parse(page)
             for l in link:
-                if (l is not None and l not in urlChunk and
+                if (l is not None and l not in UrlCrawler.__urlChunk and
                        self._FilterUrl(l) is True):
                     UrlCrawler.__urlQueue.put(l)
             self._urlPages[url] = page
