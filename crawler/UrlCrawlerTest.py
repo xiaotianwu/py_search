@@ -19,9 +19,12 @@ if __name__ == '__main__':
     path = './test/'
     seedUrl = 'http://www.yahoo.com'
     UrlCrawler.GlobalInit(seedUrl, path)
+
     crawler = UrlCrawler()
     crawler.Init(pagesLimit = 10, crawlInterval = 0.5, timeout = 5,
                  urlFilterRegexCollection = None)
     crawler.Run()
     print crawler.GetUrlChunk()    
+
+    UrlCrawler.GlobalExit()
     shutil.rmtree(path)

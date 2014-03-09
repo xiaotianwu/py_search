@@ -1,4 +1,5 @@
-﻿import os
+﻿from multiprocessing.pool import ThreadPool
+import os
 import os.path
 import Queue
 import re
@@ -19,6 +20,7 @@ class UrlCrawler:
     __urlQueue = Queue.Queue()
     __urlChunk = set()
     __urlChunkLock = threading.RLock()
+    __urlDumperThreads = ThreadPool(4)
    
     @staticmethod
     def GlobalInit(seedUrl, downloadPath, proxies = {}):
@@ -43,6 +45,12 @@ class UrlCrawler:
         UrlCrawler.__globalInit = True
 
         UrlCrawler.__globalLock.release()
+
+    @staticmethod
+    def GlobalExit():
+        '''in order to quit dumper thread safely'''
+        UrlCrawler.__urlDumperThreads.close()
+        UrlCrawler.__urlDumperThreads.join()
 
     def __init__(self):
         self._init = False
@@ -116,7 +124,7 @@ class UrlCrawler:
         while i < self._pagesLimit:
             url = UrlCrawler.__urlQueue.get(timeout = 60)
             if url == None:
-                return
+                break 
             url = url.strip(' /?')
 
             UrlCrawler.__urlChunkLock.acquire()
@@ -139,11 +147,15 @@ class UrlCrawler:
                     link not in UrlCrawler.__urlChunk and
                     self._FilterUrl(link) == True):
                     UrlCrawler.__urlQueue.put(link)
-            UrlDumper.Write(url, page)
+            dumpThreads = UrlCrawler.__urlDumperThreads
+            dumpThreads.apply_async(UrlDumper.Write, (url, page))
 
             i += 1
             self._logger.info('sleep ' + str(self._crawlInterval) + ' seconds')
             time.sleep(self._crawlInterval)
+
+        self._logger.info('crawler terminated')
+
 
     def GetUrlChunk(self):
         return UrlCrawler.__urlChunk
