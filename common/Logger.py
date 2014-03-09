@@ -8,7 +8,7 @@ class Logger:
     __loggers = {}
     __loggersLock = threading.RLock()
     __init = False
-    __loggingFile = os.environ['PY_SEARCH_ROOT'] + '/common/Logger.conf'
+    __loggingFile = os.environ['PY_SEARCH_ROOT'] + '/config/Logger.conf'
     
     @staticmethod
     def Get(name):
