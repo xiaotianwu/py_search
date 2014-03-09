@@ -28,8 +28,6 @@ if __name__ == '__main__':
     assert UrlDumper.Read(url3) == page3
 
     if USE_LEVELDB == True:
-        pass
-        #print 'remove ./urlPages'
-        #shutil.rmtree('./urlPages')
+        shutil.rmtree('./urlPages')
     else:
         shutil.rmtree('./test')

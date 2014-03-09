@@ -3,12 +3,13 @@ USE_LEVELDB = False
 
 import threading
 
+from common.Logger import Logger
+
 try:
     import leveldb
-    print('use leveldb storage')
     USE_LEVELDB = True
 except ImportError as error:
-    print(str(error) + 'use plain storage')
+    print(str(error))
     from common.Common import UrlFileNameConverter as Converter
 
 class UrlDumper:
@@ -16,30 +17,34 @@ class UrlDumper:
     __db = None
     __path = None
     __dbLock = threading.RLock()
-    __initialized = False
+    __init = False
+    __logger = Logger.Get('UrlDumper')
 
     @staticmethod
     def Init(chunkPath, leveldbFolder):
         global USE_LEVELDB
         UrlDumper.__dbLock.acquire()
-        if UrlDumper.__initialized == True:
+        if UrlDumper.__init == True:
             UrlDumper.__dbLock.release()
             return
         UrlDumper.__path = chunkPath
-        if USE_LEVELDB == True and UrlDumper.__db == None:
+        if USE_LEVELDB == True:
             dbFolder = UrlDumper.__path + '/' + leveldbFolder
-            print('create db foler:' + dbFolder)
+            UrlDumper.__logger.info('use leveldb, create folder:' + dbFolder)
             UrlDumper.__db = leveldb.LevelDB(dbFolder)
-        UrlDumper.__initialized = True
+        else:
+            UrlDumper.__logger.info('use plain storage file')
+        UrlDumper.__init = True
         UrlDumper.__dbLock.release()
 
     @staticmethod
     def Write(url, page):
-        if UrlDumper.__initialized == False:
+        if UrlDumper.__init == False:
             raise Exception('call init before writing')
         global USE_LEVELDB
         # leveldb is not thread safe
         if USE_LEVELDB == True:
+            UrlDumper.__logger.debug('write to leveldb, url: ' + url)
             UrlDumper.__dbLock.acquire()
             UrlDumper.__db.Put(url, page)
             UrlDumper.__dbLock.release()
@@ -47,7 +52,7 @@ class UrlDumper:
             fileName = Converter.UrlToFileName(url)
             try:
                 absolutePath = UrlDumper.__path + '/' + fileName
-                print 'write to file', absolutePath
+                UrlDumper.__logger.debug('write to file: ' + absolutePath)
                 with open(absolutePath, 'w') as pageFile:
                     pageFile.write(page)
             except IOError as error:
@@ -55,10 +60,11 @@ class UrlDumper:
 
     @staticmethod
     def Read(url):
-        if UrlDumper.__initialized == False:
+        if UrlDumper.__init == False:
             raise Exception('call init before writing')
         global USE_LEVELDB
         if USE_LEVELDB == True:
+            UrlDumper.__logger.debug('read from leveldb, url: ' + url)
             UrlDumper.__dbLock.acquire()
             page = UrlDumper.__db.Get(url)
             UrlDumper.__dbLock.release()
@@ -67,7 +73,7 @@ class UrlDumper:
             fileName = Converter.UrlToFileName(url)
             try:
                 absolutePath = UrlDumper.__path + '/' + fileName
-                print 'read from file', absolutePath
+                UrlDumper.__logger.debug('read from file: ' + absolutePath)
                 with open(absolutePath, 'r') as pageFile:
                     return pageFile.read()
             except IOError as error:
