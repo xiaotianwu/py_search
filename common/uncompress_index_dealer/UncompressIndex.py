@@ -140,7 +140,12 @@ class UncompressIndexReader:
     def DoRequest(ioRequest):
         if not isinstance(ioRequest, UncompressIndexIORequest):
             raise Exception('not UncompressIndexIORequest')
-        return self.Read(ioRequest.termId)
+        if ioRequest.Type == 'READ':
+            return self.Read(ioRequest.termId)
+        elif ioRequest.Type == 'READALL':
+            return self.ReadAll()
+        else:
+            raise Exception('unsupported request type ' + ioRequest.Type)
 
     def Close(self):
         del self._offsetMap

@@ -22,6 +22,7 @@ class DiskIOManager:
         self._fileReaders = {}
         self._fileReadersLock = RLock()
         self._ioCompleteSet = {}
+        self._ioCompleteSetLock = RLock()
         self._logger = Logger.Get('DiskIOManager')
         self._finishedTaskNum = 0
         self._maxTaskNum = maxTask
@@ -33,7 +34,7 @@ class DiskIOManager:
             if ioRequest.Type == 'STOP':
                 self._Stop()
                 break
-            elif ioRequest.Type == 'READ':
+            elif ioRequest.Type == 'READ' or ioRequest.Type == 'READALL':
                 self._logger.debug('get read request, id = ' +
                                    str(ioRequest.Id))
                 self._ioThreads.apply_async(self._Read, (ioRequest,))
@@ -52,6 +53,12 @@ class DiskIOManager:
         self._ioRequestQueue.put(ioRequest)
         self._ioCompleteSet[ioRequest.Id] = Event()
         return self._ioCompleteSet[ioRequest.Id]
+
+    def ReleaseDiskIORequest(self, ioRequest):
+        self._ioCompleteSetLock.acquire()
+        if ioRequest.Id in self._ioCompleteSet:
+            self._ioCompleteSet.pop(ioRequest.Id)
+        self._ioCompleteSetLock.release()
 
     def _Read(self, ioRequest):
         fileName = ioRequest.fileName
