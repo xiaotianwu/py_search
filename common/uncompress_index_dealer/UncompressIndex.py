@@ -2,6 +2,7 @@ import cPickle as pickle
 
 from common.Common import LeftPadding
 from common.Logger import Logger
+from common.IORequestType import IORequest
 
 class UncompressIndex:
     '''UncompressIndex Structure: Dict
@@ -43,6 +44,11 @@ class UncompressIndex:
 # length of dict
 # File End
 UINT32_STR_LEN= 32
+
+class UncompressIndexIORequest(IORequest):
+    def __init__(self, requestId, requestType, fileName, termId):
+        IORequest.__init__(self, requestId, requestType, fileName)
+        self.termId = termId
 
 class UncompressIndexWriter:
     def __init__(self):
@@ -127,9 +133,14 @@ class UncompressIndexReader:
             self._indexFileDesc.seek(offset, 0)
             return pickle.loads(self._indexFileDesc.read(length))
         else:
-            self._logger.debug('termid: ' + str(termid) +
+            self._logger.error('termid: ' + str(termid) +
                                ' not in indexFile: ' + self._indexFileName)
             return None
+
+    def DoRequest(ioRequest):
+        if not isinstance(ioRequest, UncompressIndexIORequest):
+            raise Exception('not UncompressIndexIORequest')
+        return self.Read(ioRequest.termId)
 
     def Close(self):
         del self._offsetMap

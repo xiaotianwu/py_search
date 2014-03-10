@@ -1,4 +1,5 @@
 from threading import Event
+from threading import RLock
 from Queue import Queue
 from multiprocessing.pool import ThreadPool as Pool
 
@@ -6,17 +7,12 @@ from multiprocessing.pool import ThreadPool as Pool
 #from gevent.queue import Queue
 #from gevent.event import Event
 
+from IORequestType import IORequest
 from Logger import Logger
-
-class DiskIORequest:
-    def __init__(self, requestId, requestType, fileName, offset, length):
-        self.Id = requestId
-        self.Type = requestType
-        self.fileName = fileName
-        self.offset = offset
-        self.length = length
-        self.result = None
-        self.retCode = 0 # TODO use enum to replace it
+from uncompress_index_dealer.UncompressIndex import UncompressIndexIORequest
+from uncompress_index_dealer.UncompressIndex import UncompressIndexReader
+from plain_file_dealer.PlainFile import PlainFileIORequest
+from plain_file_dealer.PlainFile import PlainFileReader
 
 class DiskIOManager:
     def __init__(self, diskIOThreadNum = 5, maxTask = -1):
@@ -24,8 +20,9 @@ class DiskIOManager:
         self._ioThreads = Pool(diskIOThreadNum)
         # TODO Need LRU Strategy Cache?
         self._fileReaders = {}
+        self._fileReadersLock = RLock()
         self._ioCompleteSet = {}
-        self._logger = Logger.Get('IOThread')
+        self._logger = Logger.Get('DiskIOManager')
         self._finishedTaskNum = 0
         self._maxTaskNum = maxTask
         
@@ -37,18 +34,17 @@ class DiskIOManager:
                 self._Stop()
                 break
             elif ioRequest.Type == 'READ':
-                if ioRequest.fileName not in self._fileReaders:
-                    name = ioRequest.fileName
-                    self._fileReaders[name] = open(name, 'r') # TODO 'rb' mode?
-                self._logger.debug('enter read thread')
+                self._logger.debug('get read request, id = ' +
+                                   str(ioRequest.Id))
                 self._ioThreads.apply_async(self._Read, (ioRequest,))
+                #self._Read(ioRequest)
             elif ioRequest.Type == 'WRITE':
-                self._Write()
+                self._ioThreads.apply_async(self._Write)
             else:
                 pass
 
     def PostStopRequest(self):
-        request = DiskIORequest(-1, 'STOP', '', -1, -1)
+        request = IORequest(-1, 'STOP', None)
         self._ioRequestQueue.put(request)
 
     def PostDiskIORequest(self, ioRequest):
@@ -58,34 +54,50 @@ class DiskIOManager:
         return self._ioCompleteSet[ioRequest.Id]
 
     def _Read(self, ioRequest):
-        # TODO concat debugString only when debug is enable
-        debugString = 'start reading, fileName = ' + ioRequest.fileName +\
-                      ', offset = ' + str(ioRequest.offset) +\
-                      ', len = ' + str(ioRequest.length)
-        self._logger.debug(debugString)
+        fileName = ioRequest.fileName
 
-        fd = self._fileReaders[ioRequest.fileName]
-        fd.seek(ioRequest.offset)
-        if ioRequest.length == -1:
-            data = fd.read()
-        else:
-            data = fd.read(ioRequest.length)
-        self._logger.debug('finished reading')
+        # it's a heavy lock. Fortunately, file never be closed during
+        # runtime, such that we needn't create reader in most case
+        self._fileReadersLock.acquire()
+        if fileName not in self._fileReaders:
+            self._logger.debug('create reader for ' + fileName)
+            reader = self._CreateReader(ioRequest)
+            reader.Open(fileName)
+            self._fileReaders[fileName] = reader
+            self._logger.debug('create reader for ' + fileName + ' finished')
+        reader = self._fileReaders[fileName]
+        self._fileReadersLock.release()
 
-        self._finishedTaskNum += 1
-        if self._finishedTaskNum == self._maxTaskNum:
-            self._logger.info('finish all task')
-            self.PostStopRequest()
+        data = reader.DoRequest(ioRequest)
+        self._logger.debug('finished read request: ' + str(ioRequest.Id))
 
         ioRequest.result = data
         self._ioCompleteSet[ioRequest.Id].set()
+
+        self._finishedTaskNum += 1
+        if self._finishedTaskNum == self._maxTaskNum:
+            self._logger.info('all task finished, post stop request')
+            self.PostStopRequest()
 
     def _Write(self):
         pass
 
     def _Stop(self):
-        # TODO it's necessary to stop the threadPools
-        self._ioThreads.close()
-        for desc in self._fileReaders.values():
-            desc.close()  
+        try:
+            self._ioThreads.close()
+            self._ioThreads.join()
+        except Exception as exception:
+            print exception
+
+        for reader in self._fileReaders.values():
+            reader.Close()  
         self._logger.info('exit diskio manager')
+
+    def _CreateReader(self, ioRequest):
+        # ugly polymorphic
+        if isinstance(ioRequest, PlainFileIORequest) == True:
+            return PlainFileReader()
+        elif isinstance(ioRequest, UncompressIndexIORequest) == True:
+            return UnCompressIndexReader()
+        else:
+            raise Exception('unknown io request type ' + str(ioRequest))

@@ -5,6 +5,7 @@ import time
 #import gevent
 import threading
 
+from plain_file_dealer.PlainFile import PlainFileIORequest
 from DiskIOManager import *
 
 class DiskIOManagerTestThread(threading.Thread):
@@ -44,8 +45,9 @@ if __name__ == '__main__':
     events = []
 
     for i in range(0, fileNum):
-        req = DiskIORequest(i, 'READ', 'testdata/testFile' + str(i),
-                            0, -1)
+        req = PlainFileIORequest(i, 'READ',
+                                 'testdata/testFile' + str(i),
+                                 0, -1)
         ev = dmThread.PostDiskIORequest(req)
         #ev = manager.PostDiskIORequest(req)
         events.append(ev)
