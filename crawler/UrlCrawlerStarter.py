@@ -29,3 +29,4 @@ if __name__ == '__main__':
         th.join()
     
     print 'urlChunkSize:', len(UrlCrawler.GetUrlChunk())
+    UrlCrawler.GlobalExit()
