@@ -3,28 +3,29 @@
 import re
 import os
 
-from CrawlerImpl import UrlCrawlingThread
-from CrawlerImpl import urlChunk
-from CrawlerImpl import pageChunkPath
-from CrawlerImpl import UrlCrawler
+from UrlCrawler import UrlCrawlingThread
+from UrlCrawler import UrlCrawler
 
 if __name__ == '__main__':
-    UrlCrawler.global_init(seedUrl = 'http://www.sina.com.cn',
-                           downloadPath = pageChunkPath)
+    url = 'http://www.yahoo.com'
+    path = '../page_chunk'
+    UrlCrawler.GlobalInit(seedUrl = url,
+                          downloadPath = path)
     
-    if not os.path.exists(pageChunkPath):
-        print pageChunkPath, 'not exists, create it'
-        os.mkdir(pageChunkPath)
+    if not os.path.exists(path):
+        print path, 'not exists, create it'
+        os.mkdir(path)
     
-    urlRegex = [re.compile('.*\.sina\.com/.*')]
-    threads = [UrlCrawlingThread(debug = True) for i in range(0, 5)]
-    for t in threads:
-        t.init(pagesLimit = 200,
-               urlFilterRegexCollection = urlRegex)
-        t.start()
+    urlRegex = [re.compile('.*\.yahoo\.com/.*')]
+    threads = [UrlCrawlingThread() for i in range(0, 5)]
+    for th in threads:
+        th.Init(pagesLimit = 1000,
+                crawlInterval = 5,
+                timeout = 5,
+                urlFilterRegexCollection = urlRegex)
+        th.start()
     
-    for t in threads:
-        t.join()
+    for th in threads:
+        th.join()
     
-    print 'urlChunkSize:', len(urlChunk)
-    print urlChunk
+    print 'urlChunkSize:', len(UrlCrawler.GetUrlChunk())

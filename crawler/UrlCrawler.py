@@ -141,7 +141,7 @@ class UrlCrawler:
                 continue
 
             linkList = self._Parse(page)
-            print 'size of links =', len(linkList)
+            self._logger.info('get ' + len(linkList) + ' links')
             for link in linkList:
                 if (link is not None and
                     link not in UrlCrawler.__urlChunk and
