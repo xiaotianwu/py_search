@@ -1,8 +1,9 @@
+import logging
 from threading import Thread
 
 from common.DiskIOManager import DiskIOManager
-from common.uncompress_index.UncompressIndex import UncompressIndexReader
 from common.Logger import Logger
+from IndexConfig import IndexReaderFactory
 
 class IndexIOManager(DiskIOManager):
     def __init__(self, diskIOThreadNum, cacheSize):
@@ -10,12 +11,9 @@ class IndexIOManager(DiskIOManager):
         self._logger = Logger.Get('IndexIOManager')
 
     def _CreateReader(self, ioRequest):
-        # ugly polymorphic
-        if ioRequest.fileType == 'UncompressIndex':
-            # close mmap in 32bit system
-            return UncompressIndexReader(isMMap = False)
-        else:
-            raise Exception('unknown io request type ' + ioRequest.fileType)
+        if self._logger.isEnabledFor(logging.DEBUG):
+            self._logger.debug('create reader for io request:' + ioRequest.id)
+        return IndexReaderFactory.Get()
 
 class IndexIOManagerThread(Thread):
     def __init__(self, ioThreadNum, cacheSize):

@@ -40,6 +40,7 @@ def CreateTestData(begin, end):
     for i in range(begin + 1, end):
         fileName = 'testdata/testFile' + str(i)
         cp = 'cp ' + fileNameBase + ' ' + fileName
+        print cp
         os.system(cp)
 
     return index

@@ -43,7 +43,7 @@ class DiskIOManager:
                 self._requestNum += 1
                 if self._logger.isEnabledFor(logging.DEBUG):
                     self._logger.debug('get read request, id = ' +
-                                       str(ioRequest.Id))
+                                       str(ioRequest.id))
                 self._ioThreads.apply_async(self._Read, (ioRequest,))
                 #self._Read(ioRequest)
             elif ioRequest.type == 'WRITE':
@@ -52,7 +52,7 @@ class DiskIOManager:
                 pass
 
     def PostStopRequest(self):
-        request = IORequest('STOP', None, None, None)
+        request = IORequest('STOP', None, None)
         self._ioRequestQueue.put(request)
 
     def PostIORequest(self, ioRequest):
@@ -67,7 +67,7 @@ class DiskIOManager:
             if self._logger.isEnabledFor(logging.DEBUG):
                 self._logger.debug('cache hit, ' +
                                    'request id =' +
-                                   ioRequest.Id)
+                                   ioRequest.id)
             ioRequest.result = cachedData
             self._cacheHitNum += 1
             newEvent.set()
@@ -92,7 +92,7 @@ class DiskIOManager:
         data = reader.DoRequest(ioRequest)
         ioRequest.result = data
         if self._logger.isEnabledFor(logging.DEBUG):
-            self._logger.debug('finished read request: ' + str(ioRequest.Id))
+            self._logger.debug('finished read request: ' + str(ioRequest.id))
         ioRequest.finishEvent.set()
 
         if self._cache != None:

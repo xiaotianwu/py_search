@@ -100,7 +100,7 @@ class UncompressIndexReader:
         '''open index file and get the mapping of postingList offset'''
         '''open is not thread-safe'''
         self._logger.info('open UncompressIndex file: ' + indexFileName +
-                          'mmap: ' + str(self._isMMap))
+                          ' mmap: ' + str(self._isMMap))
         self._indexFileName = indexFileName
         self._indexFileDesc = open(indexFileName, 'r')
         if self._isMMap == True:
