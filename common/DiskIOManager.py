@@ -61,8 +61,11 @@ class DiskIOManager:
              self._curTrackId += 1
         ioRequest.Id = trackId
 
-        self._ioCompleteSet[ioRequest.Id] = Event()
+        newEvent = Event()
+        with Locking(self._ioCompleteSetLock):
+            self._ioCompleteSet[ioRequest.Id] = newEvent
         self._ioRequestQueue.put(ioRequest)
+
         return self._ioCompleteSet[ioRequest.Id]
 
     def ReleaseIORequest(self, ioRequest):
