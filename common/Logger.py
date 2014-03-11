@@ -17,9 +17,7 @@ class Logger:
             assert os.path.exists(Logger.__loggingFile) == True 
             logging.config.fileConfig(Logger.__loggingFile)
             Logger.__init = True
-        if name in Logger.__loggers:
-            return Logger.__loggers[name]
-        else:
+        if name not in Logger.__loggers:
             Logger.__loggers[name] = logging.getLogger(name)
-            return Logger.__loggers[name]
         Logger.__loggersLock.release()
+        return Logger.__loggers[name]

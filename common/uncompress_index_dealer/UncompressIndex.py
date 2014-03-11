@@ -137,7 +137,7 @@ class UncompressIndexReader:
                                ' not in indexFile: ' + self._indexFileName)
             return None
 
-    def DoRequest(ioRequest):
+    def DoRequest(self, ioRequest):
         if not isinstance(ioRequest, UncompressIndexIORequest):
             raise Exception('not UncompressIndexIORequest')
         if ioRequest.Type == 'READ':

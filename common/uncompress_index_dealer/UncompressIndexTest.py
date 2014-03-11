@@ -7,7 +7,7 @@ from UncompressIndex import *
 
 randomIndexLen = 1000
 
-def gen_random_index():
+def GenRandomIndex():
     i = 0
     s = set()
     while i < randomIndexLen:
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     s3 = UncompressIndex()
     for i in range(0, 1000):
-        s3.Add(i, gen_random_index())
+        s3.Add(i, GenRandomIndex())
     testIndex = 'large.index'
     writer.Write(s3, testIndex)
     reader = UncompressIndexReader()

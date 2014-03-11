@@ -37,8 +37,8 @@ class DiskIOManager:
             elif ioRequest.Type == 'READ' or ioRequest.Type == 'READALL':
                 self._logger.debug('get read request, id = ' +
                                    str(ioRequest.Id))
-                self._ioThreads.apply_async(self._Read, (ioRequest,))
-                #self._Read(ioRequest)
+                #self._ioThreads.apply_async(self._Read, (ioRequest,))
+                self._Read(ioRequest)
             elif ioRequest.Type == 'WRITE':
                 self._ioThreads.apply_async(self._Write)
             else:
@@ -50,8 +50,9 @@ class DiskIOManager:
 
     def PostDiskIORequest(self, ioRequest):
         '''return event which can be waited'''
-        self._ioRequestQueue.put(ioRequest)
+        assert ioRequest.Id not in self._ioCompleteSet
         self._ioCompleteSet[ioRequest.Id] = Event()
+        self._ioRequestQueue.put(ioRequest)
         return self._ioCompleteSet[ioRequest.Id]
 
     def ReleaseDiskIORequest(self, ioRequest):
@@ -75,10 +76,8 @@ class DiskIOManager:
         reader = self._fileReaders[fileName]
         self._fileReadersLock.release()
 
-        data = reader.DoRequest(ioRequest)
+        ioRequest.result = reader.DoRequest(ioRequest)
         self._logger.debug('finished read request: ' + str(ioRequest.Id))
-
-        ioRequest.result = data
         self._ioCompleteSet[ioRequest.Id].set()
 
         self._finishedTaskNum += 1
@@ -105,6 +104,7 @@ class DiskIOManager:
         if isinstance(ioRequest, PlainFileIORequest) == True:
             return PlainFileReader()
         elif isinstance(ioRequest, UncompressIndexIORequest) == True:
+            self._logger.info('now creating')
             return UncompressIndexReader()
         else:
             raise Exception('unknown io request type ' + str(ioRequest))
