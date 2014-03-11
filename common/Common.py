@@ -6,6 +6,17 @@ from multiprocessing.pool import ThreadPool
 
 THREAD_POOL_SIZE = 4
 
+class Locking():
+    '''local locking'''
+    def __init__(self, locker):
+        self._locker = locker
+
+    def __enter__(self):
+        self._locker.acquire()
+
+    def __exit__(self, e_t, e_v, e_b):
+        self._locker.release()
+
 def InitThreadPool():
     Async.pool = ThreadPool(processes = THREAD_POOL_SIZE)
 

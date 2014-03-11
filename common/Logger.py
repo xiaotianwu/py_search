@@ -4,20 +4,33 @@ import os
 import os.path
 import threading
 
+from Common import Locking
+
 class Logger:
     __loggers = {}
     __loggersLock = threading.RLock()
     __init = False
     __loggingFile = os.environ['PY_SEARCH_ROOT'] + '/config/Logger.conf'
     
+    #@staticmethod
+    #def Get(name):
+    #    Logger.__loggersLock.acquire()
+    #    if Logger.__init == False:
+    #        assert os.path.exists(Logger.__loggingFile) == True 
+    #        logging.config.fileConfig(Logger.__loggingFile)
+    #        Logger.__init = True
+    #    if name not in Logger.__loggers:
+    #        Logger.__loggers[name] = logging.getLogger(name)
+    #    Logger.__loggersLock.release()
+    #    return Logger.__loggers[name]
+
     @staticmethod
     def Get(name):
-        Logger.__loggersLock.acquire()
-        if Logger.__init == False:
-            assert os.path.exists(Logger.__loggingFile) == True 
-            logging.config.fileConfig(Logger.__loggingFile)
-            Logger.__init = True
-        if name not in Logger.__loggers:
-            Logger.__loggers[name] = logging.getLogger(name)
-        Logger.__loggersLock.release()
+        with Locking(Logger.__loggersLock):
+            if Logger.__init == False:
+                assert os.path.exists(Logger.__loggingFile) == True 
+                logging.config.fileConfig(Logger.__loggingFile)
+                Logger.__init = True
+            if name not in Logger.__loggers:
+                Logger.__loggers[name] = logging.getLogger(name)
         return Logger.__loggers[name]

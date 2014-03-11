@@ -8,6 +8,7 @@ from multiprocessing.pool import ThreadPool as Pool
 #from gevent.queue import Queue
 #from gevent.event import Event
 
+from Common import Locking
 from IORequestType import IORequest
 from Logger import Logger
 from uncompress_index_dealer.UncompressIndex import UncompressIndexIORequest
@@ -57,25 +58,37 @@ class DiskIOManager:
         return self._ioCompleteSet[ioRequest.Id]
 
     def ReleaseIORequest(self, ioRequest):
-        self._ioCompleteSetLock.acquire()
-        if ioRequest.Id in self._ioCompleteSet:
-            self._ioCompleteSet.pop(ioRequest.Id)
-        self._ioCompleteSetLock.release()
+        #self._ioCompleteSetLock.acquire()
+        #if ioRequest.Id in self._ioCompleteSet:
+        #    self._ioCompleteSet.pop(ioRequest.Id)
+        #self._ioCompleteSetLock.release()
+
+        with Locking(self._ioCompleteSetLock):
+            if ioRequest.Id in self._ioCompleteSet:
+                self._ioCompleteSet.pop(ioRequest.Id)
 
     def _Read(self, ioRequest):
         fileName = ioRequest.fileName
 
         # it's a heavy lock. Fortunately, file never be closed during
         # runtime, such that we needn't create reader in most case
-        self._fileReadersLock.acquire()
-        if fileName not in self._fileReaders:
-            self._logger.debug('create reader for ' + fileName)
-            reader = self._CreateReader(ioRequest)
-            reader.Open(fileName)
-            self._fileReaders[fileName] = reader
-            self._logger.debug('create reader for ' + fileName + ' finished')
-        reader = self._fileReaders[fileName]
-        self._fileReadersLock.release()
+        #self._fileReadersLock.acquire()
+        #if fileName not in self._fileReaders:
+        #    self._logger.debug('create reader for ' + fileName)
+        #    reader = self._CreateReader(ioRequest)
+        #    reader.Open(fileName)
+        #    self._fileReaders[fileName] = reader
+        #    self._logger.debug('create reader for ' + fileName + ' finished')
+        #reader = self._fileReaders[fileName]
+        #self._fileReadersLock.release()
+
+        with Locking(self._fileReadersLock):
+            if fileName not in self._fileReaders:
+                self._logger.debug('create reader for ' + fileName)
+                reader = self._CreateReader(ioRequest)
+                reader.Open(fileName)
+                self._fileReaders[fileName] = reader
+            reader = self._fileReaders[fileName]
 
         ioRequest.result = reader.DoRequest(ioRequest)
         self._logger.debug('finished read request: ' + str(ioRequest.Id))
