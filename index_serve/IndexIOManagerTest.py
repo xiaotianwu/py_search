@@ -6,10 +6,10 @@ import shutil
 #import gevent
 import threading
 
-from IORequestType import IORequest
-from uncompress_index.UncompressIndex import UncompressIndexWriter
-from uncompress_index.UncompressIndex import UncompressIndex
-from DiskIOManager import DiskIOManagerThread
+from common.IORequestType import IORequest
+from common.uncompress_index.UncompressIndex import UncompressIndexWriter
+from common.uncompress_index.UncompressIndex import UncompressIndex
+from IndexIOManager import IndexIOManagerThread
 
 def GenRandomIndex():
     i = 0
@@ -50,16 +50,16 @@ def DeleteTestData():
 if __name__ == '__main__':
     randomIndex = CreateTestData(0, 10)
 
-    #manager = DiskIOManager()
+    #manager = IndexIOManager()
     #gevent.spawn(manager.run)
-    dmThread = DiskIOManagerThread(4, 5000)
-    #dmThread = DiskIOManagerThread(4, 0)
+    dmThread = IndexIOManagerThread(4, 5000)
+    #dmThread = IndexIOManagerThread(4, 0)
     dmThread.start()
     
     events = []
     requests = []
 
-    for i in range(0, 50000):
+    for i in range(0, 5000):
         fileName = 'testdata/testFile' + str(i % 10)
         req = IORequest('READ', fileName,
                         random.randint(0, 9999))

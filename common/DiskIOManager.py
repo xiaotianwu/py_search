@@ -13,7 +13,6 @@ from Cache import ThreadSafeCache
 from Common import Locking
 from IORequestType import IORequest
 from Logger import Logger
-from uncompress_index.UncompressIndex import UncompressIndexReader
 
 class DiskIOManager:
     def __init__(self, diskIOThreadNum, cacheSize):
@@ -34,7 +33,7 @@ class DiskIOManager:
         return (float)(self._cacheHitNum) / self._requestNum
 
     def Run(self):
-        self._logger.info('start diskio manager')
+        self._logger.info('start manager')
         while True:
             ioRequest = self._ioRequestQueue.get()
             if ioRequest.type == 'STOP':
@@ -111,26 +110,7 @@ class DiskIOManager:
 
         for reader in self._fileReaders.values():
             reader.Close()  
-        self._logger.info('exit diskio manager')
+        self._logger.info('exit manager')
 
     def _CreateReader(self, ioRequest):
-        # ugly polymorphic
-        if ioRequest.fileType == 'UncompressIndex':
-            # close mmap in 32bit system
-            return UncompressIndexReader(isMMap = False)
-        else:
-            raise Exception('unknown io request type ' + ioRequest.fileType)
-
-class DiskIOManagerThread(Thread):
-    def __init__(self, ioThreadNum, cacheSize):
-        Thread.__init__(self)
-        self._manager = DiskIOManager(ioThreadNum, cacheSize)
-
-    def run(self):
-        self._manager.Run() 
-
-    def PostIORequest(self, request):
-        return self._manager.PostIORequest(request)
-
-    def PostStopRequest(self):
-        self._manager.PostStopRequest()
+        raise Exception('need to implement')
