@@ -1,44 +1,41 @@
 import sys
-sys.path.append('../common')
-sys.path.append('../common/SimpleIndex')
 
-from Cache import Cache
-from DiskIOManager import DiskIORequest
-from DiskIOManager import DiskIOManager
-from Logger import Logger
-from SimpleIndex import SimpleIndexReader
+from common.Cache import Cache
+from common.DiskIOManager import DiskIORequest
+from common.DiskIOManager import DiskIOManagerThread
+from common.Logger import Logger
+from common.uncompress_index_dealer.UncompressIndex import UncompressIndexIORequest
+from common.plain_file_dealer.PlainFile import PlainFileIORequest
 
 class IndexManager:
     '''if mem is not enough, load high-frequency item to main
        memory and put a part of low-freq item in LRU cache'''
     # TODO enable cache after creating more index
-    def __init__(self, cacheSize = 0, diskIOThreadNum = 1):
+    def __init__(self, cacheSize = 0, diskIOThreadNum):
         self._mainIndex = None
         self._swapIndex = Cache(cacheSize) 
-        self._diskIOManager = DiskIOManager(diskIOThreadNum)
-        # TODO replace it with commonReader
-        self._indexReader = SimpleIndexReader() 
+        self._diskIOManager = DiskIOManagerThread(diskIOThreadNum)
         self._allReady = False
 
-    # TODO create a manage mechanism supporting when multiple index file
-    def init(self, mainIndexFile):
-        self.init_main_index(mainIndexFile)
-        self.init_swap_index()
+    # TODO create a manage mechanism supporting multiple index file
+    def Init(self, mainIndexFile, swapIndexFile = None):
+        self.InitMainIndex(mainIndexFile)
+        self.InitSwapIndex(swapIndexFile)
         self._allReady = True
         
-    def init_main_index(self, indexFile):
-        self._mainIndex = self._indexReader.read(indexFile)
-
-    def init_swap_index(self, indexFile = None):
+    def InitMainIndex(self, indexFile):
         pass
 
-    def fetch(self, termId):
+    def InitSwapIndex(self, indexFile):
+        pass
+
+    def Fetch(self, termId):
         '''fetch index from main chunk first, then LRU cache
            then disk, if disk hit, load it to LRU cache'''
-        index = self._mainIndex.fetch(termId)
+        index = self._mainIndex.Fetch(termId)
         if index != None:
             return index, True # modify True/False to retCode
-        index = self._swapIndex.fetch(termId)
+        index = self._swapIndex.Fetch(termId)
         if index != None:
             return index, True
         else:
@@ -46,8 +43,13 @@ class IndexManager:
         #index = diskio result
         #return index, retCode
 
-    def get_index(self):
-        return self._mainIndex.get_indexmap()
+    def GetMainIndex(self):
+        '''method for test'''
+        return self._mainIndex.GetIndexmap()
 
-    def is_ready(self):
+    def GetSwapIndex(self):
+        '''method for test'''
+        return self._swapIndex
+
+    def IsReady(self):
         return self._allReady

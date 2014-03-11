@@ -10,21 +10,7 @@ from plain_file_dealer.PlainFile import PlainFileIORequest
 from uncompress_index_dealer.UncompressIndex import UncompressIndexIORequest
 from uncompress_index_dealer.UncompressIndex import UncompressIndexWriter
 from uncompress_index_dealer.UncompressIndex import UncompressIndex
-from DiskIOManager import *
-
-class DiskIOManagerTestThread(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self._manager = DiskIOManager()
-
-    def run(self):
-        self._manager.Run() 
-
-    def PostDiskIORequest(self, request):
-        return self._manager.PostDiskIORequest(request)
-
-    def PostStopRequest(self):
-        self._manager.PostStopRequest()
+from DiskIOManager import DiskIOManagerThread
 
 def CreateTestData1(begin, end):
     os.system('mkdir testdata')
@@ -34,7 +20,6 @@ def CreateTestData1(begin, end):
         os.system('dd of=' + fileName + ' if=/dev/zero bs=1024 count=1024')
 
 def CreateTestData2(begin, end):
-    os.system('mkdir testdata')
     for i in range(begin, end):
         fileName = 'testdata/testFile' + str(i)
         print('create ' + fileName)
@@ -44,7 +29,7 @@ def CreateTestData2(begin, end):
 def GenRandomIndex():
     i = 0
     s = set()
-    while i < 100:
+    while i < 1000:
         (item1, item2) = (random.randint(0, 10000),
                           random.randint(0, 10000))
         if (item1, item2) in s:
@@ -55,16 +40,19 @@ def GenRandomIndex():
     return s
 
 def CreateTestData3(begin, end):
-    os.system('mkdir testdata')
     index = UncompressIndex()
     for i in range(0, 10000):
         index.Add(i, GenRandomIndex())
 
-    for i in range(begin, end):
+    fileNameBase = 'testdata/testFile' + str(begin)
+    print('create index file' + fileNameBase)
+    writer = UncompressIndexWriter()
+    writer.Write(index, fileNameBase)
+
+    for i in range(begin + 1, end):
         fileName = 'testdata/testFile' + str(i)
-        print('create index file' + fileName)
-        writer = UncompressIndexWriter()
-        writer.Write(index, fileName)
+        cp = 'cp ' + fileNameBase + ' ' + fileName
+        os.system(cp)
 
     return index
 
@@ -72,7 +60,7 @@ def DeleteTestData():
     os.system('rm testdata -r')  
 
 if __name__ == '__main__':
-    dmThread = DiskIOManagerTestThread()
+    dmThread = DiskIOManagerThread(4)
     dmThread.start()
     
     events = []
@@ -85,8 +73,8 @@ if __name__ == '__main__':
         req = PlainFileIORequest(i, 'READ',
                                  'testdata/testFile' + str(i),
                                  0, -1)
-        ev = dmThread.PostDiskIORequest(req)
-        #ev = manager.PostDiskIORequest(req)
+        ev = dmThread.PostIORequest(req)
+        #ev = manager.PostIORequest(req)
         events.append(ev)
 
     for ev in events:
@@ -103,7 +91,7 @@ if __name__ == '__main__':
                                  'testdata/testFile' + str(i),
                                  i, i)
         requests.append(req)
-        ev = dmThread.PostDiskIORequest(req)
+        ev = dmThread.PostIORequest(req)
         events.append(ev)
 
     for ev in events:
@@ -123,12 +111,12 @@ if __name__ == '__main__':
     randomIndex = CreateTestData3(30, 50)
     requests = []
 
-    for i in range(30, 50):
+    for i in range(30, 10000):
         req = UncompressIndexIORequest(i, 'READ',
-                                       'testdata/testFile' + str(i),
-                                       random.randint(0, 99))
+                                       'testdata/testFile' + str(i % 20 + 30),
+                                       random.randint(0, 9999))
         requests.append(req)
-        ev = dmThread.PostDiskIORequest(req)
+        ev = dmThread.PostIORequest(req)
         events.append(ev)
 
     for ev in events:
