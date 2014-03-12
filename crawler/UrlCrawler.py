@@ -7,6 +7,7 @@ import threading
 import time
 import urllib2
 
+from common.Common import Locking
 from common.HtmlParser import LinkExtractor
 from common.Logger import Logger
 from UrlDumper import UrlDumper
@@ -25,26 +26,22 @@ class UrlCrawler:
     @staticmethod
     def GlobalInit(seedUrl, downloadPath, proxies = {}):
         '''called at first in the program'''
-        UrlCrawler.__globalLock.acquire()
+        with Locking(UrlCrawler.__globalLock):
+            if UrlCrawler.__globalInit == True:
+                return
 
-        if UrlCrawler.__globalInit == True:
-            UrlCrawler.__globalLock.release()
-            return
+            UrlCrawler.__proxies = proxies
+            proxy = urllib2.ProxyHandler(proxies)
+            opener = urllib2.build_opener(proxy)
+            urllib2.install_opener(opener)
 
-        UrlCrawler.__proxies = proxies
-        proxy = urllib2.ProxyHandler(proxies)
-        opener = urllib2.build_opener(proxy)
-        urllib2.install_opener(opener)
-
-        if not os.path.exists(downloadPath):
-            os.mkdir(downloadPath)
-        UrlCrawler.__downloadPath = downloadPath
-        UrlCrawler.__seedUrl = seedUrl
-        UrlCrawler.__urlQueue.put(seedUrl)
-        UrlDumper.Init(downloadPath, 'url_and_page')
-        UrlCrawler.__globalInit = True
-
-        UrlCrawler.__globalLock.release()
+            if not os.path.exists(downloadPath):
+                os.mkdir(downloadPath)
+            UrlCrawler.__downloadPath = downloadPath
+            UrlCrawler.__seedUrl = seedUrl
+            UrlCrawler.__urlQueue.put(seedUrl)
+            UrlDumper.Init(downloadPath, 'url_and_page')
+            UrlCrawler.__globalInit = True
 
     @staticmethod
     def GlobalExit():

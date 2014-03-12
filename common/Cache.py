@@ -1,4 +1,5 @@
 import threading
+from common.Common import Locking
 from Logger import Logger
 
 class Cache:
@@ -118,16 +119,13 @@ class ThreadSafeCache:
         return self._cache.Fetch(key)
   
     def Clear(self):
-        self._lock.acquire()
-        self._cache.Clear()
-        self._locak.release()
+        with Locking(self._lock):
+            self._cache.Clear()
 
     def Add(self, key, value):
-        self._lock.acquire()
-        self._cache.Add(key, value)
-        self._lock.release()
+        with Locking(self._lock):
+            self._cache.Add(key, value)
 
     def Remove(self, key):
-        self._lock.acquire()
-        self._cache.Remove(key)
-        self._lock.release()
+        with Locking(self._lock):
+            self._cache.Remove(key)

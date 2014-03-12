@@ -3,6 +3,7 @@ USE_LEVELDB = False
 
 import threading
 
+from common.Common import Locking
 from common.Logger import Logger
 
 try:
@@ -23,19 +24,18 @@ class UrlDumper:
     @staticmethod
     def Init(chunkPath, leveldbFolder):
         global USE_LEVELDB
-        UrlDumper.__dbLock.acquire()
-        if UrlDumper.__init == True:
-            UrlDumper.__dbLock.release()
-            return
-        UrlDumper.__path = chunkPath
-        if USE_LEVELDB == True:
-            dbFolder = UrlDumper.__path + '/' + leveldbFolder
-            UrlDumper.__logger.info('use leveldb, create db folder:' + dbFolder)
-            UrlDumper.__db = leveldb.LevelDB(dbFolder)
-        else:
-            UrlDumper.__logger.info('use plain storage file')
-        UrlDumper.__init = True
-        UrlDumper.__dbLock.release()
+        with Locking(UrlDumper.__dbLock):
+            if UrlDumper.__init == True:
+                return
+            UrlDumper.__path = chunkPath
+            if USE_LEVELDB == True:
+                dbFolder = UrlDumper.__path + '/' + leveldbFolder
+                UrlDumper.__logger.info('use leveldb, create db folder:' +
+                                        dbFolder)
+                UrlDumper.__db = leveldb.LevelDB(dbFolder)
+            else:
+                UrlDumper.__logger.info('use plain storage file')
+            UrlDumper.__init = True
 
     @staticmethod
     def Write(url, page):
@@ -45,9 +45,8 @@ class UrlDumper:
         # leveldb is not thread safe
         if USE_LEVELDB == True:
             UrlDumper.__logger.debug('write to leveldb, url: ' + url)
-            UrlDumper.__dbLock.acquire()
-            UrlDumper.__db.Put(url, page)
-            UrlDumper.__dbLock.release()
+            with Locking(UrlDumper.__dbLock):
+                UrlDumper.__db.Put(url, page)
         else:
             fileName = Converter.UrlToFileName(url)
             try:
@@ -65,9 +64,8 @@ class UrlDumper:
         global USE_LEVELDB
         if USE_LEVELDB == True:
             UrlDumper.__logger.debug('read from leveldb, url: ' + url)
-            UrlDumper.__dbLock.acquire()
-            page = UrlDumper.__db.Get(url)
-            UrlDumper.__dbLock.release()
+            with Locking(UrlDumper.__dbLock):
+                page = UrlDumper.__db.Get(url)
             return page
         else:
             fileName = Converter.UrlToFileName(url)
