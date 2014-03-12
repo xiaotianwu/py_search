@@ -1,6 +1,7 @@
 import glob
 import os
 import os.path
+import random
 import thread
 from multiprocessing.pool import ThreadPool
 
@@ -86,3 +87,18 @@ class DirHandler:
             for dirEntry in dirs:
                 files += DirHandler.GetAllFiles(dirEntry, suffix, True)
         return files
+
+def GenRandomIndex():
+    i = 0
+    s = set()
+    randomIndexLen = 1000
+    while i < randomIndexLen:
+        (item1, item2) = (random.randint(0, 10000),
+                          random.randint(0, 10000))
+        if (item1, item2) in s:
+            continue
+        else:
+            s.add((item1, item2))
+            i += 1
+    return s
+

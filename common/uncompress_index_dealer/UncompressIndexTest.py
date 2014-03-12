@@ -4,21 +4,7 @@ import os
 import random
 
 from UncompressIndex import *
-
-randomIndexLen = 1000
-
-def GenRandomIndex():
-    i = 0
-    s = set()
-    while i < randomIndexLen:
-        (item1, item2) = (random.randint(0, 10000),
-                          random.randint(0, 10000))
-        if (item1, item2) in s:
-            continue
-        else:
-            s.add((item1, item2))
-            i += 1
-    return s
+from common.Common import GenRandomIndex
 
 if __name__ == '__main__':
     s = UncompressIndex()
