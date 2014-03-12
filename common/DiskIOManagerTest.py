@@ -70,7 +70,7 @@ if __name__ == '__main__':
     #gevent.spawn(manager.run)
 
     for i in range(0, 10):
-        req = PlainFileIORequest(i, 'READ',
+        req = PlainFileIORequest('READ',
                                  'testdata/testFile' + str(i),
                                  0, -1)
         ev = dmThread.PostIORequest(req)
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     requests = []
 
     for i in range(10, 30):
-        req = PlainFileIORequest(i, 'READ',
+        req = PlainFileIORequest('READ',
                                  'testdata/testFile' + str(i),
                                  i, i)
         requests.append(req)
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     requests = []
 
     for i in range(30, 20000):
-        req = UncompressIndexIORequest(i, 'READ',
+        req = UncompressIndexIORequest('READ',
                                        'testdata/testFile' + str(i % 20 + 30),
                                        random.randint(0, 9999))
         requests.append(req)

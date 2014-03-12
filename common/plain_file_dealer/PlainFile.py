@@ -4,8 +4,8 @@ from common.Common import Locking
 from common.IORequestType import IORequest
 
 class PlainFileIORequest(IORequest):
-    def __init__(self, requestId, requestType, fileName, offset, length):
-        IORequest.__init__(self, requestId, requestType, fileName)
+    def __init__(self, requestType, fileName, offset, length):
+        IORequest.__init__(self, requestType, fileName)
         self.offset = offset
         self.length = length
 

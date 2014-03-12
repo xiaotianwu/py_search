@@ -1,5 +1,6 @@
 from threading import Event
 from threading import Thread
+from threading import Lock
 from threading import RLock
 from Queue import Queue
 from multiprocessing.pool import ThreadPool as Pool
@@ -28,6 +29,8 @@ class DiskIOManager:
         self._logger = Logger.Get('DiskIOManager')
         self._finishedTaskNum = 0
         self._maxTaskNum = maxTaskNum
+        self._curTrackId = 0
+        self._curTrackIdLock = Lock()
         
     def Run(self):
         self._logger.info('start diskio manager')
@@ -47,12 +50,17 @@ class DiskIOManager:
                 pass
 
     def PostStopRequest(self):
-        request = IORequest(-1, 'STOP', None)
+        request = IORequest('STOP', None)
         self._ioRequestQueue.put(request)
 
     def PostIORequest(self, ioRequest):
         '''return event which can be waited'''
         assert ioRequest.Id not in self._ioCompleteSet
+        with Locking(self._curTrackIdLock):
+             trackId = self._curTrackId
+             self._curTrackId += 1
+        ioRequest.Id = trackId
+
         self._ioCompleteSet[ioRequest.Id] = Event()
         self._ioRequestQueue.put(ioRequest)
         return self._ioCompleteSet[ioRequest.Id]

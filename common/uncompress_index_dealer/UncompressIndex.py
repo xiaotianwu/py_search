@@ -48,8 +48,8 @@ class UncompressIndex:
 UINT32_STR_LEN= 32
 
 class UncompressIndexIORequest(IORequest):
-    def __init__(self, requestId, requestType, fileName, termId):
-        IORequest.__init__(self, requestId, requestType, fileName)
+    def __init__(self, requestType, fileName, termId):
+        IORequest.__init__(self, requestType, fileName)
         self.termId = termId
 
 class UncompressIndexWriter:
