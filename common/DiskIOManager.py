@@ -111,7 +111,6 @@ class DiskIOManager:
         if isinstance(ioRequest, PlainFileIORequest) == True:
             return PlainFileReader()
         elif isinstance(ioRequest, UncompressIndexIORequest) == True:
-            self._logger.info('now creating')
             return UncompressIndexReader()
         else:
             raise Exception('unknown io request type ' + str(ioRequest))

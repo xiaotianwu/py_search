@@ -1,5 +1,3 @@
-import sys
-
 from common.Cache import Cache
 from common.DiskIOManager import DiskIORequest
 from common.DiskIOManager import DiskIOManagerThread
@@ -11,7 +9,7 @@ class IndexManager:
     '''if mem is not enough, load high-frequency item to main
        memory and put a part of low-freq item in LRU cache'''
     # TODO enable cache after creating more index
-    def __init__(self, cacheSize = 0, diskIOThreadNum):
+    def __init__(self, cacheSize, diskIOThreadNum):
         self._mainIndex = None
         self._swapIndex = Cache(cacheSize) 
         self._diskIOManager = DiskIOManagerThread(diskIOThreadNum)
@@ -19,6 +17,7 @@ class IndexManager:
 
     # TODO create a manage mechanism supporting multiple index file
     def Init(self, mainIndexFile, swapIndexFile = None):
+        self._diskIOManager.start()
         self.InitMainIndex(mainIndexFile)
         self.InitSwapIndex(swapIndexFile)
         self._allReady = True
