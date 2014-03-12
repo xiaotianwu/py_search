@@ -136,8 +136,8 @@ class UncompressIndexReader:
         if termid in self._offsetMap:
             with Locking(self._fileLock):
                 self._indexFileDesc.seek(offset, 0)
-                data = pickle.loads(self._indexFileDesc.read(length))
-            return data
+                binaryData = self._indexFileDesc.read(length)
+            return pickle.loads(binaryData)
         else:
             self._logger.error('termid: ' + str(termid) +
                                ' not in indexFile: ' + self._indexFileName)
