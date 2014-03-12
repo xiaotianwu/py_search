@@ -111,7 +111,7 @@ if __name__ == '__main__':
     randomIndex = CreateTestData3(30, 50)
     requests = []
 
-    for i in range(30, 10000):
+    for i in range(30, 20000):
         req = UncompressIndexIORequest(i, 'READ',
                                        'testdata/testFile' + str(i % 20 + 30),
                                        random.randint(0, 9999))

@@ -1,3 +1,6 @@
+from threading import RLock
+
+from common.Common import Locking
 from common.IORequestType import IORequest
 
 class PlainFileIORequest(IORequest):
@@ -15,21 +18,26 @@ class PlainFileReader:
     def __init__(self):
         self._fileName = None
         self._fileDesc = None
+        self._fileLock = RLock()
 
     def Open(self, name):
         self._fileName = name
         self._fileDesc = open(name, 'r')
 
     def ReadAll(self):
-        self._fileDesc.seek(0, 0)
-        return self._fileDesc.read()
+        with Locking(self._fileLock):
+            self._fileDesc.seek(0, 0)
+            data = self._fileDesc.read()
+        return data
 
     def Read(self, offset, length):
-        self._fileDesc.seek(offset, 0)
-        if length == -1:
-            return self._fileDesc.read()
-        else:
-            return self._fileDesc.read(length)
+        with Locking(self._fileLock):
+            self._fileDesc.seek(offset, 0)
+            if length == -1:
+                data = self._fileDesc.read()
+            else:
+                data = self._fileDesc.read(length)
+        return data
 
     def DoRequest(self, ioRequest):
         if not isinstance(ioRequest, PlainFileIORequest):

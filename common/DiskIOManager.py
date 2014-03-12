@@ -58,11 +58,6 @@ class DiskIOManager:
         return self._ioCompleteSet[ioRequest.Id]
 
     def ReleaseIORequest(self, ioRequest):
-        #self._ioCompleteSetLock.acquire()
-        #if ioRequest.Id in self._ioCompleteSet:
-        #    self._ioCompleteSet.pop(ioRequest.Id)
-        #self._ioCompleteSetLock.release()
-
         with Locking(self._ioCompleteSetLock):
             if ioRequest.Id in self._ioCompleteSet:
                 self._ioCompleteSet.pop(ioRequest.Id)
@@ -72,16 +67,6 @@ class DiskIOManager:
 
         # it's a heavy lock. Fortunately, file never be closed during
         # runtime, such that we needn't create reader in most case
-        #self._fileReadersLock.acquire()
-        #if fileName not in self._fileReaders:
-        #    self._logger.debug('create reader for ' + fileName)
-        #    reader = self._CreateReader(ioRequest)
-        #    reader.Open(fileName)
-        #    self._fileReaders[fileName] = reader
-        #    self._logger.debug('create reader for ' + fileName + ' finished')
-        #reader = self._fileReaders[fileName]
-        #self._fileReadersLock.release()
-
         with Locking(self._fileReadersLock):
             if fileName not in self._fileReaders:
                 self._logger.debug('create reader for ' + fileName)

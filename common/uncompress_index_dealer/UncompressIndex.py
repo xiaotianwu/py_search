@@ -1,6 +1,8 @@
 import cPickle as pickle
+from threading import RLock
 
 from common.Common import LeftPadding
+from common.Common import Locking
 from common.Logger import Logger
 from common.IORequestType import IORequest
 
@@ -90,9 +92,11 @@ class UncompressIndexReader:
         self._offsetMap = None
         self._indexFileDesc = None
         self._indexFileName = None
+        self._fileLock = RLock()
 
     def Open(self, indexFileName):
         '''open index file and get the mapping of postingList offset'''
+        '''open is not thread-safe'''
         self._logger.info('open UncompressIndex file: ' + indexFileName)
         self._indexFileDesc = open(indexFileName, 'rb')
         self._indexFileName = indexFileName
@@ -110,28 +114,29 @@ class UncompressIndexReader:
     def ReadAll(self):
         '''get the entire UncompressIndex from the file'''
         index = UncompressIndex()
-        for (termid, value) in self._offsetMap.items():
-            self._logger.debug('read termid = ' + str(termid) +
-                               ' (value, len) = ' + str(value))
-            self._indexFileDesc.seek(value[0], 0)
-            postingList = pickle.loads(self._indexFileDesc.read(value[1]))
-            if not isinstance(postingList, set):
-                raise TypeError('postingList for ' +
-                                str(termid) + ' open failed')
-            index.Add(termid, postingList)
-
-        self._logger.info('finish read')
+        with Locking(self._fileLock):
+            for (termid, value) in self._offsetMap.items():
+                self._logger.debug('read termid = ' + str(termid) +
+                                   ' (value, len) = ' + str(value))
+                self._indexFileDesc.seek(value[0], 0)
+                postingList = pickle.loads(self._indexFileDesc.read(value[1]))
+                if not isinstance(postingList, set):
+                    raise TypeError('postingList for ' +
+                                    str(termid) + ' open failed')
+                index.Add(termid, postingList)
+            self._logger.info('finish read')
         return index
 
     def Read(self, termid):
         '''read specified postinglist by term id'''
+        self._logger.debug('read termid: ' + str(termid) +
+                           ' from indexFile: ' + self._indexFileName)
+        offset = self._offsetMap[termid][0]
+        length = self._offsetMap[termid][1]
         if termid in self._offsetMap:
-            self._logger.debug('read termid: ' + str(termid) +
-                               ' from indexFile: ' + self._indexFileName)
-            offset = self._offsetMap[termid][0]
-            length = self._offsetMap[termid][1]
-            self._indexFileDesc.seek(offset, 0)
-            return pickle.loads(self._indexFileDesc.read(length))
+            with Locking(self._fileLock):
+                self._indexFileDesc.seek(offset, 0)
+                return pickle.loads(self._indexFileDesc.read(length))
         else:
             self._logger.error('termid: ' + str(termid) +
                                ' not in indexFile: ' + self._indexFileName)
@@ -148,6 +153,7 @@ class UncompressIndexReader:
             raise Exception('unsupported request type ' + ioRequest.Type)
 
     def Close(self):
+        '''close is not thread safe'''
         del self._offsetMap
         self._offsetMap = None
         self._indexFileDesc.close()
