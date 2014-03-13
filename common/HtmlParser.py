@@ -1,3 +1,4 @@
+import logging
 import re
 import sys
 reload(sys)
@@ -62,8 +63,9 @@ class TermExtractor(HTMLParser):
         try:
             if self.__textTagRegex.match(tag):
                 self.__tagClassification = 'TEXT'
-                self._logger.debug("Tag = " + tag)
-                self._logger.debug("Attrs = " + tag)
+                if self._logger.isEnabledFor(logging.DEBUG):
+                    self._logger.debug("Tag = " + tag)
+                    self._logger.debug("Attrs = " + tag)
             else:
                 self.__tagClassification = 'UNKNOWN'
         except Exception as exception:
@@ -71,7 +73,8 @@ class TermExtractor(HTMLParser):
 
     def handle_data(self, data):
         try:
-            self._logger.debug("Data = " + data)
+            if self._logger.isEnabledFor(logging.DEBUG):
+                self._logger.debug("Data = " + data)
             if self.__tagClassification in ('LINK', 'TEXT'):
                 words = self._wordBreaker.Split(data);
                 for word in words:
@@ -99,8 +102,9 @@ class LinkExtractor(HTMLParser):
                     if name == 'href':
                         self.link.add(value)
                 self.__tagClassification = 'LINK'
-                self._logger.debug("Tag = " + tag)
-                self._logger.debug("Attrs = " + tag)
+                if self._logger.isEnabledFor(logging.DEBUG):
+                    self._logger.debug("Tag = " + tag)
+                    self._logger.debug("Attrs = " + tag)
         else:
             self.__tagClassification = 'UNKNOWN'
 

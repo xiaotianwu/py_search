@@ -1,4 +1,6 @@
 import threading
+import logging
+
 from common.Common import Locking
 from Logger import Logger
 
@@ -14,6 +16,7 @@ class Cache:
             self.prev = None
 
     def __init__(self, maxElemNum):
+        assert maxElemNum > 0
         self._chunkHead = None
         self._chunkTail = None
         self._hashTable = {}
@@ -28,7 +31,8 @@ class Cache:
         self._curElemNum = 0
        
     def Fetch(self, key):
-        self._logger.debug('fetch ' + str(self._hashTable))
+        if self._logger.isEnabledFor(logging.DEBUG):
+            self._logger.debug('fetch ' + str(self._hashTable))
         if key in self._hashTable:
             self._Update(key)
             return self._hashTable[key].val
@@ -36,11 +40,17 @@ class Cache:
             return None
 
     def Add(self, key, value):
+        if key in self._hashTable:
+            if self._logger.isEnabledFor(logging.DEBUG):
+                self._logger.debug('can not insert same key ' + str(key))
+            return
         newNode = Cache.Node(key, value)
         self._hashTable[key] = newNode
-        self._logger.debug('add ' + str(self._hashTable))
+        if self._logger.isEnabledFor(logging.DEBUG):
+            self._logger.debug('add ' + str(self._hashTable))
         if self._curElemNum == self._maxElemNum:
-            self._logger.debug('remove ' + str(self._head().key))
+            if self._logger.isEnabledFor(logging.DEBUG):
+                self._logger.debug('remove ' + str(self._head().key))
             self._hashTable.pop(self._head().key)
             self._Pop()
         else:
@@ -91,12 +101,13 @@ class Cache:
         if self._chunkHead == None:
             self._chunkTail = None
         del top
-        self._logger.debug('pop ' + 'chunkHead ' +\
-                           'empty ' if self._chunkHead == None\
-                           else str(self._chunkHead.key) +\
-                           'chunkTail ' + 'empty '\
-                           if self._chunkTail == None\
-                           else str(self._chunkTail.key))
+        if self._logger.isEnabledFor(logging.DEBUG):
+            self._logger.debug('pop ' + 'chunkHead ' +\
+                               'empty ' if self._chunkHead == None\
+                               else str(self._chunkHead.key) +\
+                               'chunkTail ' + 'empty '\
+                               if self._chunkTail == None\
+                               else str(self._chunkTail.key))
 
     def _Push(self, node):
         if self._chunkHead == None:
@@ -105,9 +116,10 @@ class Cache:
             self._chunkTail.succ = node
             node.prev = self._chunkTail
         self._chunkTail = node
-        self._logger.debug('push ' + 'chunkHead ' +\
-                           str(self._chunkHead.key) +\
-                           'chunkTail ' + str(self._chunkTail.key))
+        if self._logger.isEnabledFor(logging.DEBUG):
+            self._logger.debug('push ' + 'chunkHead ' +\
+                               str(self._chunkHead.key) +\
+                               'chunkTail ' + str(self._chunkTail.key))
 
 class ThreadSafeCache:
     # TODO we need to test the performance
