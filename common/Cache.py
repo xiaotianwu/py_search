@@ -113,7 +113,7 @@ class ThreadSafeCache:
     # TODO we need to test the performance
     def __init__(self, maxElemNum):
         self._cache = Cache(maxElemNum)
-        self._lock = threading.RLock()
+        self._lock = threading.Lock()
 
     def Fetch(self, key):
         return self._cache.Fetch(key)

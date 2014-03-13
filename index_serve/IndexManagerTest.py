@@ -4,14 +4,14 @@ import os
 import time
 
 from common.Common import GenRandomIndex
-from common.uncompress_index_dealer.UncompressIndex import *
+from common.uncompress_index.UncompressIndex import *
 from IndexManager import IndexManager
 
 indexFileName = 'test.index'
 
 def CreateTestData():
     index = UncompressIndex()
-    for i in range(0, 100):
+    for i in range(0, 1000):
         index.Add(i, GenRandomIndex())
 
     writer = UncompressIndexWriter()
@@ -30,11 +30,10 @@ if __name__ == '__main__':
     indexManager.Init(indexFileName)
     assert indexManager.IsReady() == True
 
-    for i in range(0, 100):
+    for i in range(0, 1000):
         print 'test case', i
         assert index.Fetch(i) == indexManager.Fetch(i)[0]
 
     indexManager.Stop()
-    time.sleep(2)
     print 'test done'
     DeleteTestData()
