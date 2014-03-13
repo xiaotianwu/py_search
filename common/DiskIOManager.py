@@ -12,10 +12,10 @@ from multiprocessing.pool import ThreadPool as Pool
 from Common import Locking
 from IORequestType import IORequest
 from Logger import Logger
-from uncompress_index_dealer.UncompressIndex import UncompressIndexIORequest
-from uncompress_index_dealer.UncompressIndex import UncompressIndexReader
-from plain_file_dealer.PlainFile import PlainFileIORequest
-from plain_file_dealer.PlainFile import PlainFileReader
+from uncompress_index.UncompressIndex import UncompressIndexIORequest
+from uncompress_index.UncompressIndex import UncompressIndexReader
+from plain_file.PlainFile import PlainFileIORequest
+from plain_file.PlainFile import PlainFileReader
 
 class DiskIOManager:
     def __init__(self, diskIOThreadNum, maxTaskNum):
@@ -24,27 +24,23 @@ class DiskIOManager:
         # TODO Need LRU Strategy Cache?
         self._fileReaders = {}
         self._fileReadersLock = RLock()
-        self._ioCompleteSet = {}
-        self._ioCompleteSetLock = RLock()
         self._logger = Logger.Get('DiskIOManager')
         self._finishedTaskNum = 0
         self._maxTaskNum = maxTaskNum
-        self._curTrackId = 0
-        self._curTrackIdLock = Lock()
         
     def Run(self):
         self._logger.info('start diskio manager')
         while True:
             ioRequest = self._ioRequestQueue.get()
-            if ioRequest.Type == 'STOP':
+            if ioRequest.type == 'STOP':
                 self._Stop()
                 break
-            elif ioRequest.Type == 'READ' or ioRequest.Type == 'READALL':
+            elif ioRequest.type == 'READ' or ioRequest.type == 'READALL':
                 self._logger.debug('get read request, id = ' +
                                    str(ioRequest.Id))
                 self._ioThreads.apply_async(self._Read, (ioRequest,))
                 #self._Read(ioRequest)
-            elif ioRequest.Type == 'WRITE':
+            elif ioRequest.type == 'WRITE':
                 self._ioThreads.apply_async(self._Write)
             else:
                 pass
@@ -55,23 +51,10 @@ class DiskIOManager:
 
     def PostIORequest(self, ioRequest):
         '''return event which can be waited'''
-        assert ioRequest.Id not in self._ioCompleteSet
-        with Locking(self._curTrackIdLock):
-             trackId = self._curTrackId
-             self._curTrackId += 1
-        ioRequest.Id = trackId
-
         newEvent = Event()
-        with Locking(self._ioCompleteSetLock):
-            self._ioCompleteSet[ioRequest.Id] = newEvent
+        ioRequest.finishEvent = newEvent
         self._ioRequestQueue.put(ioRequest)
-
-        return self._ioCompleteSet[ioRequest.Id]
-
-    def ReleaseIORequest(self, ioRequest):
-        with Locking(self._ioCompleteSetLock):
-            if ioRequest.Id in self._ioCompleteSet:
-                self._ioCompleteSet.pop(ioRequest.Id)
+        return newEvent
 
     def _Read(self, ioRequest):
         fileName = ioRequest.fileName
@@ -88,7 +71,7 @@ class DiskIOManager:
 
         ioRequest.result = reader.DoRequest(ioRequest)
         self._logger.debug('finished read request: ' + str(ioRequest.Id))
-        self._ioCompleteSet[ioRequest.Id].set()
+        ioRequest.finishEvent.set()
 
         self._finishedTaskNum += 1
         if self._finishedTaskNum == self._maxTaskNum:

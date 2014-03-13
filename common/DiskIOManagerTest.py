@@ -2,14 +2,13 @@
 
 import os
 import random
-import time
 #import gevent
 import threading
 
-from plain_file_dealer.PlainFile import PlainFileIORequest
-from uncompress_index_dealer.UncompressIndex import UncompressIndexIORequest
-from uncompress_index_dealer.UncompressIndex import UncompressIndexWriter
-from uncompress_index_dealer.UncompressIndex import UncompressIndex
+from plain_file.PlainFile import PlainFileIORequest
+from uncompress_index.UncompressIndex import UncompressIndexIORequest
+from uncompress_index.UncompressIndex import UncompressIndexWriter
+from uncompress_index.UncompressIndex import UncompressIndex
 from DiskIOManager import DiskIOManagerThread
 
 def CreateTestData1(begin, end):
@@ -130,6 +129,4 @@ if __name__ == '__main__':
 
     #manager.PostStopRequest()
     dmThread.PostStopRequest()
-
-    #gevent.sleep(2)
-    time.sleep(2)
+    dmThread.join()

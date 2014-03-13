@@ -42,9 +42,9 @@ class PlainFileReader:
     def DoRequest(self, ioRequest):
         if not isinstance(ioRequest, PlainFileIORequest):
             raise Exception('not PlainFileIORequest type')
-        if ioRequest.Type == 'READ':
+        if ioRequest.type == 'READ':
             return self.Read(ioRequest.offset, ioRequest.length)
-        elif ioRequest.Type == 'READALL':
+        elif ioRequest.type == 'READALL':
             return self.ReadAll()
         else:
             raise Exception('unsupported request type ' + ioRequest.Type)

@@ -1,5 +1,5 @@
 import cPickle as pickle
-from threading import RLock
+from threading import Lock
 
 from common.Common import LeftPadding
 from common.Common import Locking
@@ -92,7 +92,7 @@ class UncompressIndexReader:
         self._offsetMap = None
         self._indexFileDesc = None
         self._indexFileName = None
-        self._fileLock = RLock()
+        self._fileLock = Lock()
 
     def Open(self, indexFileName):
         '''open index file and get the mapping of postingList offset'''
@@ -146,9 +146,9 @@ class UncompressIndexReader:
     def DoRequest(self, ioRequest):
         if not isinstance(ioRequest, UncompressIndexIORequest):
             raise Exception('not UncompressIndexIORequest')
-        if ioRequest.Type == 'READ':
+        if ioRequest.type == 'READ':
             return self.Read(ioRequest.termId)
-        elif ioRequest.Type == 'READALL':
+        elif ioRequest.type == 'READALL':
             return self.ReadAll()
         else:
             raise Exception('unsupported request type ' + ioRequest.Type)

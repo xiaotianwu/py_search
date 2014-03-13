@@ -6,7 +6,7 @@ from PlainFile import *
 
 if __name__ == '__main__':
     request = PlainFileIORequest('READ', 'test', 0, -1)
-    assert request.Type == 'READ'
+    assert request.type == 'READ'
     assert request.fileName == 'test'
     assert request.offset == 0
     assert request.length == -1
