@@ -97,7 +97,7 @@ class DiskIOManager:
         if isinstance(ioRequest, PlainFileIORequest) == True:
             return PlainFileReader()
         elif isinstance(ioRequest, UncompressIndexIORequest) == True:
-            return UncompressIndexReader()
+            return UncompressIndexReader(isMMap = True)
         else:
             raise Exception('unknown io request type ' + str(ioRequest))
 

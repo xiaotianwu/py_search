@@ -107,12 +107,12 @@ if __name__ == '__main__':
     print('test round 2 all done')
 
     events = []
-    randomIndex = CreateTestData3(30, 50)
+    randomIndex = CreateTestData3(30, 40)
     requests = []
 
     for i in range(30, 20000):
         req = UncompressIndexIORequest('READ',
-                                       'testdata/testFile' + str(i % 20 + 30),
+                                       'testdata/testFile' + str(i % 10 + 30),
                                        random.randint(0, 9999))
         requests.append(req)
         ev = dmThread.PostIORequest(req)

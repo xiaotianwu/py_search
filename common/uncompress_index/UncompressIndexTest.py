@@ -62,12 +62,22 @@ if __name__ == '__main__':
         s3.Add(i, GenRandomIndex())
     testIndex = 'large.index'
     writer.Write(s3, testIndex)
+
     reader = UncompressIndexReader()
     reader.Open(testIndex)
     s3Clone = reader.ReadAll()
     assert s3.GetIndexMap() == s3Clone.GetIndexMap()
     reader.Close()
+    reader.Open(testIndex)
+    for i in range(0, 1000):
+        assert reader.Read(i) == s3.Fetch(i)
+    reader.Close()
 
+    reader = UncompressIndexReader(isMMap = True)
+    reader.Open(testIndex)
+    s3Clone = reader.ReadAll()
+    assert s3.GetIndexMap() == s3Clone.GetIndexMap()
+    reader.Close()
     reader.Open(testIndex)
     for i in range(0, 1000):
         assert reader.Read(i) == s3.Fetch(i)

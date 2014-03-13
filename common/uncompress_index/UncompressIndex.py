@@ -1,4 +1,6 @@
 import cPickle as pickle
+import os
+import mmap
 from threading import Lock
 
 from common.Common import LeftPadding
@@ -87,29 +89,46 @@ class UncompressIndexWriter:
         self._logger.info('finish write')
  
 class UncompressIndexReader:
-    def __init__(self):
+    def __init__(self, isMMap = False):
         self._logger = Logger.Get('UncompressIndexReader')
         self._offsetMap = None
         self._indexFileDesc = None
+        self._indexFileMMap = None
+        self._isMMap = isMMap
         self._indexFileName = None
         self._fileLock = Lock()
 
     def Open(self, indexFileName):
         '''open index file and get the mapping of postingList offset'''
         '''open is not thread-safe'''
-        self._logger.info('open UncompressIndex file: ' + indexFileName)
-        self._indexFileDesc = open(indexFileName, 'rb')
+        self._logger.info('open UncompressIndex file: ' + indexFileName +
+                          'mmap: ' + str(self._isMMap))
         self._indexFileName = indexFileName
-        self._indexFileDesc.seek(-UINT32_STR_LEN, 2)
-        offsetMapSize = int(self._indexFileDesc.read(UINT32_STR_LEN))
-        self._logger.info('read offset map len: ' + str(offsetMapSize))
+        self._indexFileDesc = open(indexFileName, 'r')
+        if self._isMMap == True:
+            self._indexFileMMap = mmap.mmap(self._indexFileDesc.fileno(), 0,
+                                            prot = mmap.PROT_READ)
+            self._indexFileMMap.seek(-UINT32_STR_LEN, 2)
+            offsetMapSize = int(self._indexFileMMap.read(UINT32_STR_LEN))
+            self._logger.info('read offset map len: ' + str(offsetMapSize))
 
-        self._indexFileDesc.seek(0 - UINT32_STR_LEN - offsetMapSize, 2)
-        self._offsetMap = pickle.loads(self._indexFileDesc.read(offsetMapSize))
-        self._logger.debug('self._offsetMap = ' + str(self._offsetMap))
-        self._logger.info('offset map read finished')
-        if not isinstance(self._offsetMap, dict):
-            raise TypeError('offset map read failed')
+            self._indexFileMMap.seek(0 - UINT32_STR_LEN - offsetMapSize, 2)
+            self._offsetMap = pickle.loads(self._indexFileMMap.read(offsetMapSize))
+            self._logger.debug('self._offsetMap = ' + str(self._offsetMap))
+            self._logger.info('offset map read finished')
+            if not isinstance(self._offsetMap, dict):
+                raise TypeError('offset map read failed')
+        else:
+            self._indexFileDesc.seek(-UINT32_STR_LEN, 2)
+            offsetMapSize = int(self._indexFileDesc.read(UINT32_STR_LEN))
+            self._logger.info('read offset map len: ' + str(offsetMapSize))
+
+            self._indexFileDesc.seek(0 - UINT32_STR_LEN - offsetMapSize, 2)
+            self._offsetMap = pickle.loads(self._indexFileDesc.read(offsetMapSize))
+            self._logger.debug('self._offsetMap = ' + str(self._offsetMap))
+            self._logger.info('offset map read finished')
+            if not isinstance(self._offsetMap, dict):
+                raise TypeError('offset map read failed')
 
     def ReadAll(self):
         '''get the entire UncompressIndex from the file'''
@@ -118,8 +137,12 @@ class UncompressIndexReader:
             for (termid, value) in self._offsetMap.items():
                 self._logger.debug('read termid = ' + str(termid) +
                                    ' (value, len) = ' + str(value))
-                self._indexFileDesc.seek(value[0], 0)
-                postingList = pickle.loads(self._indexFileDesc.read(value[1]))
+                if self._isMMap == True:
+                    self._indexFileMMap.seek(value[0], 0)
+                    postingList = pickle.loads(self._indexFileMMap.read(value[1]))
+                else:
+                    self._indexFileDesc.seek(value[0], 0)
+                    postingList = pickle.loads(self._indexFileDesc.read(value[1]))
                 if not isinstance(postingList, set):
                     raise TypeError('postingList for ' +
                                     str(termid) + ' open failed')
@@ -135,8 +158,12 @@ class UncompressIndexReader:
         length = self._offsetMap[termid][1]
         if termid in self._offsetMap:
             with Locking(self._fileLock):
-                self._indexFileDesc.seek(offset, 0)
-                binaryData = self._indexFileDesc.read(length)
+                if self._isMMap == True:
+                    self._indexFileMMap.seek(offset, 0)
+                    binaryData = self._indexFileMMap.read(length)
+                else:
+                    self._indexFileDesc.seek(offset, 0)
+                    binaryData = self._indexFileDesc.read(length)
             return pickle.loads(binaryData)
         else:
             self._logger.error('termid: ' + str(termid) +
@@ -157,8 +184,10 @@ class UncompressIndexReader:
         '''close is not thread safe'''
         del self._offsetMap
         self._offsetMap = None
+        if self._indexFileMMap != None:
+            self._indexFileMMap.close()
         self._indexFileDesc.close()
-        del self._indexFileDesc
+        self._indexFileMMap = None
         self._indexFileDesc = None
         self._logger.info('close UncompressIndex file: ' +
                           self._indexFileName)
