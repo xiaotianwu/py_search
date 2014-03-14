@@ -18,9 +18,10 @@ class UncompressIndex:
         self._indexMap = {}
 
     def Add(self, termId, index):
-        if not isinstance(termId, int) and isinstance(index, set):
-            raise TypeError('termId must be int and index must be set')
-        self._indexMap[termId] = index
+        if termId not in self._indexMap:
+            self._indexMap[termId] = index
+        else:
+            self._indexMap[termId] += index
 
     def AddTermDocPair(self, termId, docid):
         if termId not in self._indexMap:
@@ -215,3 +216,17 @@ class UncompressIndexHandler:
         for i in range(2, len(self._indexContainer)):
             result |= self._indexContainer[i]
         return result
+
+class UncompressIndexMerger:
+    def __init__(self):
+        self._indexToMergeList = []
+
+    def Add(self, index):
+        self._indexToMergeList.append(index)
+
+    def DoMerge(self):
+        mergedIndex = UncompressIndex()
+        for index in self._indexToMergeList:
+            for termId in index.GetIndexMap().keys():
+                mergedIndex.Add(termId, index.Fetch(termId))
+        return mergedIndex

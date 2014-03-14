@@ -1,59 +1,51 @@
 from common.Cache import Cache
+from common.Common import Locking
 from common.DiskIOManager import DiskIOManagerThread
 from common.Logger import Logger
 from common.uncompress_index.UncompressIndex import *
-from common.plain_file.PlainFile import *
+from common.IORequestType import IORequest
+from IndexMergeManager import IndexMergeManager
 
 class IndexManager:
-    '''if mem is not enough, load high-frequency item to main
-       memory and put a part of low-freq item in LRU cache'''
-    # TODO enable cache after creating more index
     def __init__(self, cacheSize, diskIOThreadNum):
-        self._mainIndex = None
-        #self._swapIndex = ThreadSafeCache(cacheSize) 
-        self._diskIOManager = DiskIOManagerThread(diskIOThreadNum)
-        self._diskIOManager.start()
+        self._index = None
         self._allReady = False
+        self._diskIOManager = DiskIOManagerThread(cacheSize, diskIOThreadNum)
+        self._diskIOManager.start()
+        self._termIdToFile = {}
 
     # TODO create a manage mechanism supporting multiple index file
-    def Init(self, mainIndexFile, swapIndexFile = None):
-        self.InitMainIndex(mainIndexFile)
-        #self.InitSwapIndex(swapIndexFile)
+    def Init(self, indexFiles):
+        self.InitIndex(indexFiles)
         self._allReady = True
         
-    def InitMainIndex(self, indexFile):
-        req = UncompressIndexIORequest('READALL', indexFile)
-        readFinished = self._diskIOManager.PostIORequest(req)
-        readFinished.wait()
-        self._mainIndex = req.result
+    def InitIndex(self, indexFiles):
+        '''main index loading is sync'''
+        mainIndexEvents = []
+        for index in indexFiles:
+            if index[1] == 'main':
+               req = IORequest('READALL', index[0])
+               mainIndexEvents.append(self._diskIOManager.PostIORequest(req))
+        mainIndexMerger = IndexMergeManager(UncompressIndexMerger())
+        for event in mainIndexEvents:
+            event.wait()
+            mainIndexMerger.Add(event.result)
+        self._mainIndex = mainIndexMerger.DoMerge()
         if not isinstance(self._mainIndex, UncompressIndex):
             raise Exception('not UncompressIndex')
         print 'initialze of main index finished'
 
-    def InitSwapIndex(self, indexFile):
-        req = UncompressIndexIORequest('READALL', indexFile)
-        readFinished = self._diskIOManager.PostIORequest(req)
-        readFinished.wait()
-        indexMap = req.result.GetIndexMap()
-        for key in indexMap.keys():
-            self._swapIndex.Add(key, indexMap[key])
-        print 'initialze of swap index finished'
-
     def Fetch(self, termId):
-        '''fetch index from main chunk first, then LRU cache
-           then disk, if disk hit, load it to LRU cache'''
         index = self._mainIndex.Fetch(termId)
         if index != None:
-            return (index, True) # modify True/False to retCode
+            return (index, True)
         else:
-            return (None, False)
-        #index = self._swapIndex.Fetch(termId)
-        #if index != None:
-        #    return (index, True)
-        #else:
-        #    req = UncompressIndexIORequest('READALL', indexFile)
-        #    readEvent = self._diskIOManager.PostIORequest(req)
-        #    return readEvent, False
+            if termId in self._termIdToFile:
+                req = IORequest('READ', self._termIdToFile[termId], termId)
+                readEvent = DiskIOManagerThread.PostIORequest(req)
+                return (readEvent, False)
+            else:
+                return (None, False)
 
     def Stop(self):
         self._diskIOManager.PostStopRequest()
@@ -63,9 +55,5 @@ class IndexManager:
         '''method for test'''
         return self._mainIndex.GetIndexmap()
         
-    def GetSwapIndex(self):
-        '''method for test'''
-        return self._swapIndex
-
     def IsReady(self):
         return self._allReady
