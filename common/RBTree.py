@@ -45,27 +45,51 @@ class RBTree:
             if parent.color == BLACK:
                 break
             grandParent = parent.parent
-            if granParent.left == parent:
+            assert grandParent != None
+            if grandParent.left == parent:
                 uncle = grandParent.right
             else:
                 uncle = grandParent.left
-            if parent.color == RED:
-                if uncle == None or uncle.color == BLACK:
-                    if node == parent.right:
-                        self._LeftRotate(parent)
-                        node = parent
-                    else:
-                        parent.color = BLACK
-                        grandParent.color = RED
-                        if grandPrant.left == parent:
-                            self._RightRotate(grandParent)
-                        else:
-                            self._LeftRotate(grandParent)
-                elif uncle.color == RED:
+            if uncle == None or uncle.color == BLACK:
+                if node == parent.right:
+                    self._LeftRotate(parent)
+                else:
                     parent.color = BLACK
-                    uncle.color = BLACK
                     grandParent.color = RED
-                    node = grandParent
+                    if grandParent.left == parent:
+                        self._RightRotate(grandParent)
+                    else:
+                        self._LeftRotate(grandParent)
+                node = parent
+            elif uncle.color == RED:
+                parent.color = BLACK
+                uncle.color = BLACK
+                grandParent.color = RED
+                node = grandParent
+            else:
+                raise Exception('RBTree corrupt')
+
+    def CheckIsLegal(self):
+        if self._root.color != BLACK:
+            return False
+        blackNodeNum, retCode = self._CheckIsLegal(self._root)
+        return retCode
+
+    def _CheckIsLegal(self, node):
+        if node == None:
+            return 1, True
+        if node.left != None:         
+            leftBlackNodeNum, retCode = self._CheckIsLegal(node.left)
+            if retCode == False:
+                return -1, False
+        if node.right != None:
+            rightBlackNodeNum, retCode = self._CheckIsLegal(node.right)
+            if retCode == False:
+                return -1, False
+        if leftBlackNodeNum == rightBlackNodeNum:
+            return rightBlackNodeNum, True
+        else
+            return -1, False
 
     def _LeftRotate(self, node):
         assert node.right != None
