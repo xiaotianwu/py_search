@@ -17,9 +17,12 @@ INDEXTYPE = configParser.get('global', 'index_type')
 configParserLogger.info('index type: ' + INDEXTYPE)
 MMAP = configParser.getint('global', 'mmap')
 configParserLogger.info('mmap: ' + str(MMAP))
+INDEXFOLDER = configParser.get('global', 'index_folder')
+configParserLogger.info('index folder: ' + INDEXFOLDER)
+INDEXMAPPING = configParser.get('index_file', 'mapping')
+configParserLogger.info('mapping string: ' + INDEXMAPPING)
 
 class IndexHandlerFactory():
-
     @staticmethod
     def Get():
         global INDEXTYPE
@@ -29,7 +32,6 @@ class IndexHandlerFactory():
             raise Exception('unknown index type')
 
 class IndexWriterFactory():
-
     @staticmethod
     def Get():
         global INDEXTYPE
@@ -39,7 +41,6 @@ class IndexWriterFactory():
             raise Exception('unknown index type')
 
 class IndexReaderFactory():
-
     @staticmethod
     def Get():
         global INDEXTYPE, MMAP
@@ -50,7 +51,6 @@ class IndexReaderFactory():
             raise Exception('unknown index type')
 
 class IndexMergerFactory():
-
     @staticmethod
     def Get():
         global INDEXTYPE
