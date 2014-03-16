@@ -14,29 +14,37 @@ class RBTreeNode:
 
 class RBTree:
     '''key is unique'''
-    def __init__(self, root):
+    def __init__(self, root = None):
         self._root = root
 
     def root(self):
         return self._root
 
     def Insert(self, key, val):
+        global BLACK, RED
         newNode = RBTreeNode(key, val)
+        if self._root == None: 
+            self._root = newNode
+            self._root.color = BLACK
+            return
         insertPos = self._SearchInsertPos(self._root, None, key)
         if insertPos.key > key:
             assert insertPos.left == None
             insertPos.left = newNode
             newNode.parent = insertPos
-        else:
+        elif insertPos.key < key:
             assert insertPos.right == None
             insertPos.right = newNode
             newNode.parent = insertPos
+        else:
+            raise Exception('key exist' + str(key))
         self._InsertFix(newNode)
         
     def Search(self, key):
         return self._Search(node, key)
 
     def _InsertFix(self, node):
+        global BLACK, RED
         while True:
             if node == self._root:
                 node.color = BLACK
@@ -69,26 +77,57 @@ class RBTree:
             else:
                 raise Exception('RBTree corrupt')
 
-    def CheckIsLegal(self):
+    def CheckLegality(self):
+        global BLACK, RED
         if self._root.color != BLACK:
             return False
-        blackNodeNum, retCode = self._CheckIsLegal(self._root)
-        return retCode
+        blackNodeNum, retCode = self._CheckRBTreeProperty(self._root)
+        if retCode == False:
+            return False
+                    
+        inorderArray = list()
+        self._InOrderTraverse(self._root, inorderArray)
+        if self._CheckIsMonoArray(inorderArray) == True:
+            return True
+        else:
+            return False
 
-    def _CheckIsLegal(self, node):
+    def _InOrderTraverse(self, node, array):
+        if node.left != None:
+            self._InOrderTraverse(node.left, array)
+        array.append(node.key)
+        if node.right != None:
+            self._InOrderTraverse(node.right, array)
+
+    def _CheckIsMonoArray(self, array):
+        last = 0 - 2 << 64
+        for item in array:
+            if item >= last:
+                last = item
+            else:
+                return False
+        return True
+
+    def _CheckRBTreeProperty(self, node):
+        global BLACK, RED
         if node == None:
             return 1, True
-        if node.left != None:         
-            leftBlackNodeNum, retCode = self._CheckIsLegal(node.left)
-            if retCode == False:
+        if node.color == RED:
+            if node.left != None and node.left.color == RED:
                 return -1, False
-        if node.right != None:
-            rightBlackNodeNum, retCode = self._CheckIsLegal(node.right)
-            if retCode == False:
+            if node.right != None and node.right.color == RED:
                 return -1, False
+        leftBlackNodeNum, retCode = self._CheckRBTreeProperty(node.left)
+        if retCode == False:
+            return -1, False
+        rightBlackNodeNum, retCode = self._CheckRBTreeProperty(node.right)
+        if retCode == False:
+            return -1, False
         if leftBlackNodeNum == rightBlackNodeNum:
-            return rightBlackNodeNum, True
-        else
+            blackNodeNum = leftBlackNodeNum + 1 if node.color == BLACK\
+                                                else leftBlackNodeNum
+            return blackNodeNum, True
+        else:
             return -1, False
 
     def _LeftRotate(self, node):
@@ -141,9 +180,9 @@ class RBTree:
         if node == None:
             return parentNode
         elif node.key > key:
-            return _SearchInsertPos(node.left, node, key)
+            return self._SearchInsertPos(node.left, node, key)
         elif node.key < key:
-            return _SearchInsertPos(node.right, node, key)
+            return self._SearchInsertPos(node.right, node, key)
 
     def Delete(self, key):
         pass

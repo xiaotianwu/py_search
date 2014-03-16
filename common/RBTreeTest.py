@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import pdb
 import unittest
 
 from RBTree import *
@@ -68,6 +69,20 @@ class RBTreeTest(unittest.TestCase):
         self.assertEqual(tree.root().right.right.key, 9)
         self.assertEqual(tree.root().right.right.left, None)
         self.assertEqual(tree.root().right.right.right, None)
+
+    def testInsertTinySet(self):
+        tree = RBTree()
+        tree.Insert(1, None)
+        self.assertTrue(tree.CheckLegality())
+        tree.Insert(2, None)
+        self.assertTrue(tree.CheckLegality())
+        tree.Insert(3, None)
+        pdb.set_trace()
+        self.assertTrue(tree.CheckLegality())
+        tree.Insert(4, None)
+        self.assertTrue(tree.CheckLegality())
+        tree.Insert(5, None)
+        self.assertTrue(tree.CheckLegality())
 
 if __name__ == '__main__':
     unittest.main()
