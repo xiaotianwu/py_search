@@ -123,6 +123,41 @@ class UncompressIndexTest(unittest.TestCase):
 
         os.remove(testIndex)
 
+    def testMerger(self):
+        s1 = UncompressIndex()
+        s1.Add(1, set([(5, 0.8)]))
+        s1.Add(2, set())
+        s = UncompressIndex()
+        s.Add(1, set([(5, 0.8)]))
+        s.Add(2, set())
+        
+        merger = UncompressIndexMerger()
+        merger.Add(s1)
+        mergedIndex = merger.DoMerge()
+        self.assertDictEqual(mergedIndex.GetIndexMap(), s.GetIndexMap())
+
+        s1 = UncompressIndex()
+        s1.Add(1, set([(5, 0.8)]))
+        s1.Add(2, set())
+        s2 = UncompressIndex()
+        s2.Add(1, set([(1, 1.0), (2, 0.9), (3, 0.8), (4, 0.7)]))
+        s2.Add(2, set([(2, 0.9), (3, 0.8), (4, 0.7), (5, 0.6)]))
+        s2.Add(3, set([(3, 0.8), (4, 0.7), (5, 0.6), (6, 0.5)]))
+        s3 = UncompressIndex()
+        s3.Add(4, set([(4, 0.1), (7, 0.2), (8, 0.3), (10, 0.5)]))
+        s = UncompressIndex()
+        s.Add(1, set([(1, 1.0), (2, 0.9), (3, 0.8), (4, 0.7), (5, 0.8)]))
+        s.Add(2, set([(2, 0.9), (3, 0.8), (4, 0.7), (5, 0.6)]))
+        s.Add(3, set([(3, 0.8), (4, 0.7), (5, 0.6), (6, 0.5)]))
+        s.Add(4, set([(4, 0.1), (7, 0.2), (8, 0.3), (10, 0.5)]))
+
+        merger = UncompressIndexMerger()
+        merger.Add(s1)
+        merger.Add(s2)
+        merger.Add(s3)
+        mergedIndex = merger.DoMerge()
+        self.assertDictEqual(mergedIndex.GetIndexMap(), s.GetIndexMap())
+
 if __name__ == '__main__':
     unittest.main()
 
