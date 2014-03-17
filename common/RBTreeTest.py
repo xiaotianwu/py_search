@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import pdb
+import random
 import unittest
 
 from RBTree import *
@@ -77,12 +77,28 @@ class RBTreeTest(unittest.TestCase):
         tree.Insert(2, None)
         self.assertTrue(tree.CheckLegality())
         tree.Insert(3, None)
-        pdb.set_trace()
         self.assertTrue(tree.CheckLegality())
         tree.Insert(4, None)
         self.assertTrue(tree.CheckLegality())
         tree.Insert(5, None)
         self.assertTrue(tree.CheckLegality())
+
+    def testInsertLargeSet(self):
+        tree = RBTree()
+        for i in range(0, 2000):
+            tree.Insert(i, None)
+            self.assertTrue(tree.CheckLegality())
+
+    def testInsertRandomSet(self):
+        tree = RBTree()
+        s = set()
+        for i in range(0, 2000):
+            num = random.randint(0, 10000000)
+            if num not in s:
+                s.add(num)
+        for i in list(s):
+            tree.Insert(i, None)
+            self.assertTrue(tree.CheckLegality())
 
 if __name__ == '__main__':
     unittest.main()

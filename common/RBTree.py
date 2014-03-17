@@ -61,6 +61,7 @@ class RBTree:
             if uncle == None or uncle.color == BLACK:
                 if node == parent.right:
                     self._LeftRotate(parent)
+                    node = parent
                 else:
                     parent.color = BLACK
                     grandParent.color = RED
@@ -68,7 +69,6 @@ class RBTree:
                         self._RightRotate(grandParent)
                     else:
                         self._LeftRotate(grandParent)
-                node = parent
             elif uncle.color == RED:
                 parent.color = BLACK
                 uncle.color = BLACK
@@ -160,7 +160,7 @@ class RBTree:
             else:
                 parent.right = leftChild
         leftChild.parent = parent
-        node.right = leftChild.right
+        node.left = leftChild.right
         if leftChild.right != None:
             leftChild.right.parent = node
         leftChild.right = node
