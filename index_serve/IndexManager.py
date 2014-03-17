@@ -1,5 +1,3 @@
-from common.Cache import Cache
-from common.Common import Locking
 from common.Logger import Logger
 
 from IndexBlockManager import IndexBlockManager
@@ -35,6 +33,7 @@ class IndexManager:
         self._index = merger.DoMerge()
         for event in readEvents:
             del event.result
+        del readEvents
 
     def Fetch(self, termId):
         index = self._index.Fetch(termId)
@@ -45,7 +44,7 @@ class IndexManager:
             if block == None:
                 return (None, False)
             req = IndexIORequest('READ', block.mappingFile, termId)
-            readEvent = DiskIOManagerThread.PostIORequest(req)
+            readEvent = self._indexIOManager.PostIORequest(req)
             return (readEvent, False)
 
     def Stop(self):
