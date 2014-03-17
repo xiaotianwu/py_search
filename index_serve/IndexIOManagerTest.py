@@ -8,10 +8,10 @@ import threading
 import unittest
 
 from common.Common import GenRandomIndex
-from common.IORequestType import IORequest
 from common.uncompress_index.UncompressIndex import UncompressIndex
 from common.uncompress_index.UncompressIndex import UncompressIndexWriter
 from IndexIOManager import IndexIOManagerThread
+from IndexIOManager import IndexIORequest
 
 class IndexIOManagerTest(unittest.TestCase):
     _index = None
@@ -54,7 +54,7 @@ class IndexIOManagerTest(unittest.TestCase):
 
         for i in range(0, 5000):
             fileName = 'testdata/testFile' + str(i % 10)
-            req = IORequest('READ', fileName,
+            req = IndexIORequest('READ', fileName,
                             random.randint(0, 9999))
             requests.append(req)
             ev = self._ioManagerThread.PostIORequest(req)

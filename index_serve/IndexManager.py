@@ -1,55 +1,56 @@
 from common.Cache import Cache
 from common.Common import Locking
-from common.DiskIOManager import DiskIOManagerThread
 from common.Logger import Logger
-from common.uncompress_index.UncompressIndex import *
-from common.IORequestType import IORequest
-from IndexMergeManager import IndexMergeManager
+
+from IndexBlockManager import IndexBlockManager
+from IndexConfig import IndexReaderFactory
+from IndexConfig import IndexWriterFactory
+from IndexConfig import IndexMergerFactory
+from IndexIOManager import IndexIOManagerThread
+from IndexIOManager import IndexIORequest
 
 class IndexManager:
-    def __init__(self, cacheSize, diskIOThreadNum):
+    def __init__(self, cacheSize, diskIOThreadNum,
+                 indexFolder, indexMappingstr):
         self._index = None
         self._allReady = False
-        self._diskIOManager = DiskIOManagerThread(cacheSize, diskIOThreadNum)
-        self._diskIOManager.start()
-        self._termIdToFile = {}
-
-    # TODO create a manage mechanism supporting multiple index file
-    def Init(self, indexFiles):
-        self.InitIndex(indexFiles)
+        self._indexIOManager = IndexIOManagerThread(cacheSize, diskIOThreadNum)
+        self._indexIOManager.start()
+        self._indexBlockManager = IndexBlockManager(indexFolder, indexMappingstr)
+        self._InitIndex()
         self._allReady = True
-        
-    def InitIndex(self, indexFiles):
-        '''main index loading is sync'''
-        mainIndexEvents = []
-        for index in indexFiles:
-            if index[1] == 'main':
-               req = IORequest('READALL', index[0])
-               mainIndexEvents.append(self._diskIOManager.PostIORequest(req))
-        mainIndexMerger = IndexMergeManager(UncompressIndexMerger())
-        for event in mainIndexEvents:
+
+    def _InitIndex(self):
+        readEvents = []
+        allBlocks = self._indexBlockManager.GetAllBlocks()
+        for block in allBlocks:
+            if block.blockType == 'mem':
+               req = IndexIORequest('READALL', block.mappingFile)
+               readEvents.append(self._IndexIOManager.PostIORequest(req))
+        merger = IndexMergerFactory.Get()
+        # mem index loading is sync
+        for event in readEvents:
             event.wait()
-            mainIndexMerger.Add(event.result)
-        self._mainIndex = mainIndexMerger.DoMerge()
-        if not isinstance(self._mainIndex, UncompressIndex):
-            raise Exception('not UncompressIndex')
-        print 'initialze of main index finished'
+            merger.Add(event.result)
+        self._index = merger.DoMerge()
+        for event in readEvents:
+            del event.result
 
     def Fetch(self, termId):
-        index = self._mainIndex.Fetch(termId)
+        index = self._index.Fetch(termId)
         if index != None:
             return (index, True)
         else:
-            if termId in self._termIdToFile:
-                req = IORequest('READ', self._termIdToFile[termId], termId)
-                readEvent = DiskIOManagerThread.PostIORequest(req)
-                return (readEvent, False)
-            else:
+            block = self._indexBlockManager.GetBlock(termId)
+            if block == None:
                 return (None, False)
+            req = IndexIORequest('READ', block.mappingFile, termId)
+            readEvent = DiskIOManagerThread.PostIORequest(req)
+            return (readEvent, False)
 
     def Stop(self):
-        self._diskIOManager.PostStopRequest()
-        self._diskIOManager.join()
+        self._indexIOManager.PostStopRequest()
+        self._indexIOManager.join()
 
     def GetMainIndex(self):
         '''method for test'''

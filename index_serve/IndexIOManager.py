@@ -2,8 +2,13 @@ import logging
 from threading import Thread
 
 from common.DiskIOManager import DiskIOManager
+from common.IORequestType import IORequest
 from common.Logger import Logger
 from IndexConfig import IndexReaderFactory
+
+class IndexIORequest(IORequest):
+    def __init__(self, requestType, fileName, termId):
+        IORequest.__init__(self, requestType, fileName, termId)
 
 class IndexIOManager(DiskIOManager):
     def __init__(self, diskIOThreadNum, cacheSize):

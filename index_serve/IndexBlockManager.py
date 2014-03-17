@@ -27,7 +27,7 @@ class IndexBlockManager:
                                mapping[1], mapping[2])
             self._blockTree.Insert(key, block)
 
-    def GetIndexBlock(self, termId):
+    def GetBlock(self, termId):
         key, block = self._blockTree.LowerBound(termId)
         if block == None:
             return None
@@ -35,3 +35,6 @@ class IndexBlockManager:
             return block
         else:
             return None
+
+    def GetAllBlocks(self):
+        raise Exception('need implement')

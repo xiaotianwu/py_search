@@ -2,6 +2,9 @@ import uuid
 
 class IORequest:
     '''it's for KV file'''
+    __slots__ = ['type', 'fileName', 'key', 'result',
+                 'id', 'retCode', 'finishEvent']
+
     def __init__(self, requestType, fileName, key):
         self.type = requestType
         self.fileName = fileName
