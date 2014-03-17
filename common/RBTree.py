@@ -40,8 +40,33 @@ class RBTree:
             raise Exception('key exist' + str(key))
         self._InsertFix(newNode)
         
-    def Search(self, key):
-        return self._Search(node, key)
+    def Find(self, key):
+        cur = self._root
+        while cur != None:
+            if cur.key == key:
+              return cur.val
+            elif cur.key > key:
+              cur = cur.left
+            else:
+              cur = cur.right
+        return None
+ 
+    def LowerBound(self, key):
+        '''return kv pair'''
+        cur = self._root
+        lowerBound = None
+        while cur != None:
+            if cur.key == key:
+              return cur.key, cur.val
+            elif cur.key > key:
+              cur = cur.left
+            else:
+              lowerBound = cur
+              cur = cur.right
+        if lowerBound == None:
+            return None, None
+        else:
+            return lowerBound.key, lowerBound.val
 
     def _InsertFix(self, node):
         global BLACK, RED
@@ -166,16 +191,6 @@ class RBTree:
         leftChild.right = node
         node.parent = leftChild
 
-    def _Search(self, node, key):
-        if node == None:
-            return None
-        elif node.key == key:
-            return node.val
-        elif node.key > key:
-            return _Search(node.left, key)
-        elif node.key < key:
-            return _Search(node.right, key)
-       
     def _SearchInsertPos(self, node, parentNode, key):
         if node == None:
             return parentNode

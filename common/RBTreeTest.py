@@ -86,7 +86,7 @@ class RBTreeTest(unittest.TestCase):
     def testInsertLargeSet(self):
         tree = RBTree()
         for i in range(0, 2000):
-            tree.Insert(i, None)
+            tree.Insert(i, i)
             self.assertTrue(tree.CheckLegality())
 
     def testInsertRandomSet(self):
@@ -99,6 +99,25 @@ class RBTreeTest(unittest.TestCase):
         for i in list(s):
             tree.Insert(i, None)
             self.assertTrue(tree.CheckLegality())
+
+    def testSearch(self):
+        tree = RBTree()
+        for i in range(0, 2000):
+            tree.Insert(i, i)
+        for i in range(0, 2000):
+            self.assertEqual(i, tree.Find(i))
+
+    def testLowerBound(self):
+        tree = RBTree()
+        for i in range(0, 2000, 2):
+            tree.Insert(i, i)
+        for i in range(1, 2001, 2):
+            k, v = tree.LowerBound(i)
+            self.assertEqual(k, i - 1)
+            self.assertEqual(v, i - 1)
+        k, v = tree.LowerBound(-1)
+        self.assertEqual(k, None)
+        self.assertEqual(v, None)
 
 if __name__ == '__main__':
     unittest.main()
