@@ -22,7 +22,7 @@ class IndexManager:
         readEvents = []
         allBlocks = self._indexBlockManager.GetAllBlocks()
         for block in allBlocks:
-            if block.blockType == 'mem':
+            if block.type == 'mem':
                req = IndexIORequest('READALL', block.mappingFile)
                readEvents.append(self._IndexIOManager.PostIORequest(req))
         merger = IndexMergerFactory.Get()

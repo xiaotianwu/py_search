@@ -111,18 +111,25 @@ class RBTree:
             return False
                     
         inorderArray = list()
-        self._InOrderTraverse(self._root, inorderArray)
+        self.InOrderTraverseKey(self._root, inorderArray)
         if self._CheckIsMonoArray(inorderArray) == True:
             return True
         else:
             return False
 
-    def _InOrderTraverse(self, node, array):
+    def InOrderTraverseKey(self, node, array):
         if node.left != None:
-            self._InOrderTraverse(node.left, array)
+            self.InOrderTraverseKey(node.left, array)
         array.append(node.key)
         if node.right != None:
-            self._InOrderTraverse(node.right, array)
+            self.InOrderTraverseKey(node.right, array)
+
+    def InOrderTraverseValue(self, node, array):
+        if node.left != None:
+            self.InOrderTraverseValue(node.left, array)
+        array.append(node.val)
+        if node.right != None:
+            self.InOrderTraverseValue(node.right, array)
 
     def _CheckIsMonoArray(self, array):
         last = 0 - 2 << 64

@@ -1,39 +1,39 @@
 #!/usr/bin/python
-
 import os
 import time
+import unittest
 
 from common.Common import GenRandomIndex
 from common.uncompress_index.UncompressIndex import *
 from IndexManager import IndexManager
 
-indexFileName = 'test.index'
+class IndexManagerTest(unittest.TestCase):
+    self._index = None
+    self._indexManager = None
+    self._indexFile = 'test.index'
 
-def CreateTestData():
-    index = UncompressIndex()
-    for i in range(0, 1000):
-        index.Add(i, GenRandomIndex())
+    def setUp(self):
+        index = UncompressIndex()
+        for i in range(0, 1000):
+            index.Add(i, GenRandomIndex())
+        self._index = index
+        writer = UncompressIndexWriter()
+        writer.Write(self._index, self._indexFile)
+        print self._indexFile, 'created'
+        self._indexManager = IndexManager(0, 3)
+        self._indexManager.Init(self._indexFile)
 
-    writer = UncompressIndexWriter()
-    writer.Write(index, indexFileName)
-    print indexFileName, 'created'
-    return index
+    def tearDown(self):
+        print 'test done'
+        self._indexManager.Stop()
+        os.remove(self._indexFile)
 
-def DeleteTestData():
-    os.remove(indexFileName)
+    def testManager(self):
+        self.assertTrue(assert self._indexManager.IsReady())
+
+        for i in range(0, 1000):
+            print 'test case', i
+            assert self._index.Fetch(i) == self._indexManager.Fetch(i)[0]
 
 if __name__ == '__main__':
-    index = CreateTestData()
-
-    indexManager = IndexManager(0, 3)
-    assert indexManager.IsReady() == False
-    indexManager.Init(indexFileName)
-    assert indexManager.IsReady() == True
-
-    for i in range(0, 1000):
-        print 'test case', i
-        assert index.Fetch(i) == indexManager.Fetch(i)[0]
-
-    indexManager.Stop()
-    print 'test done'
-    DeleteTestData()
+    unittest.main()
