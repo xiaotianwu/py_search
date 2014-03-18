@@ -12,12 +12,8 @@ class IndexSearchRequest:
           self.termIdList = termIdList
           self.id = uuid.uuid4()
           self.indexHandler = IndexHandlerFactory.Get()
-          self.finishEvent = Event()
           self.waitingIORequests = []
           self.result = None
-
-      def Wait(self):
-          self.finishEvent.wait()
 
 class IndexSearcher:
     '''the worker to do docid matching'''
@@ -30,7 +26,7 @@ class IndexSearcher:
     def PostSearchRequest(self, indexSearchRequest):
         if self._logger.isEnabledFor(logging.DEBUG):
             self._logger.debug('SearchPrepare, termIdList = ' + str(termIdList))
-        return self._SearchPrepare(indexSearchRequest)
+        self._SearchPrepare(indexSearchRequest)
 
     def _SearchPrepare(self, indexSearchRequest):
         for termId in termIdList:
@@ -48,16 +44,15 @@ class IndexSearcher:
                     return None
                 else:
                     indexSearchRequest.waitingIORequests.append(ret)
-        self._searchThreads.apply_async(self._Searching, (indexSearchRequest,))
+        self._searchThreads.apply(self._Searching, (indexSearchRequest,))
 
     def _Searching(self, indexSearchRequest):
         waitingRequests = indexSearchRequest.waitingIORequests
         indexHandler = indexSearchRequest.indexHandler
-        for req in waitingRequests:
-            req.Wait()
-            indexHandler.Add(req.result)
+        for readRequest in waitingRequests:
+            readRequest.Wait()
+            indexHandler.Add(readRequest.result)
         if self._logger.isEnabledFor(logging.DEBUG):
             self._logger.debug('all posting list are ready, searching for id: ' +
                                indexSearchRequest.id)
         indexSearchRequest.result = indexHandler.Intersect()
-        indexSearchRequest.finishEvent.set()
