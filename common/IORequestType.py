@@ -1,4 +1,5 @@
 import uuid
+from threading import Event
 
 class IORequest:
     '''it's for KV file'''
@@ -12,7 +13,7 @@ class IORequest:
         self.result = None
         self.id = str(uuid.uuid4())
         self.retCode = 0 # TODO use enum to replace it
-        self.finishEvent = None
+        self.finishEvent = Event()
 
     def Wait(self):
         self.finishEvent.wait()

@@ -1,5 +1,4 @@
 import logging
-from threading import Event
 from threading import Thread
 from threading import Lock
 from Queue import Queue
@@ -57,8 +56,6 @@ class DiskIOManager:
 
     def PostIORequest(self, ioRequest):
         '''return event which can be waited'''
-        newEvent = Event()
-        ioRequest.finishEvent = newEvent
         cachedData = None
         if self._cache != None:
             cachedData = self._cache.Fetch(ioRequest.key)
@@ -70,7 +67,7 @@ class DiskIOManager:
                                    ioRequest.id)
             ioRequest.result = cachedData
             self._cacheHitNum += 1
-            newEvent.set()
+            ioRequest.finishEvent.set()
         else:
             self._ioRequestQueue.put(ioRequest)
 
