@@ -1,4 +1,7 @@
+import logging
+
 from common.RBTree import RBTree
+from common.Logger import Logger
 
 class IndexBlock:
     __slots__ = ['termidStart', 'termidEnd', 'mappingFile', 'type']
@@ -21,6 +24,7 @@ class IndexBlock:
 
 class IndexBlockManager:
     def __init__(self, folder, mappingStr):
+        self._logger = Logger.Get('IndexBlockManager')
         self._indexFolder = folder
         self._indexMappingRawStr = mappingStr
         self._blockTree = RBTree()
@@ -28,15 +32,19 @@ class IndexBlockManager:
 
     def _ParseIndexMappingStr(self):
         rawStr = self._indexMappingRawStr
-        allMapping = rawStr.strip().split(';')
+        allMapping = rawStr.split(';')
         for mapping in allMapping:
             mapping = mapping.split(':')
             assert len(mapping) >= 3
             termidRange = mapping[0].split(',')
-            termidStart = int(termidRange[0])
-            termidEnd = int(termidRange[1])
-            mappingFile = self._indexFolder + '/' + mapping[1]
-            blockType = mapping[2]
+            termidStart = int(termidRange[0].strip())
+            termidEnd = int(termidRange[1].strip())
+            mappingFile = self._indexFolder + '/' + mapping[1].strip()
+            blockType = mapping[2].strip()
+            if self._logger.isEnabledFor(logging.DEBUG):
+                self._logger.debug(
+                    'create index block: termid from %d to %d file:%s type:%s'
+                    % (termidStart, termidEnd, mappingFile, blockType))
             block = IndexBlock(termidStart, termidEnd,
                                mappingFile, blockType)
             # redundancy in key, val

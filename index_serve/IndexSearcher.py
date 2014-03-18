@@ -16,7 +16,6 @@ class IndexSearchRequest:
           self.result = None
 
 class IndexSearcher:
-    '''the worker to do docid matching'''
     def __init__(self, searchThreadNum, indexManager):
         self._indexManager = indexManager
         self._logger = Logger.Get('IndexSearcher')
@@ -25,7 +24,8 @@ class IndexSearcher:
     def Search(self, termIdList):
         indexSearchRequest = IndexSearchRequest(termIdList)
         if self._logger.isEnabledFor(logging.DEBUG):
-            self._logger.debug('SearchPrepare, termIdList = ' + str(termIdList))
+            self._logger.debug('SearchPrepare, termIdList = %s'
+                               % str(termIdList))
         self._Search(indexSearchRequest)
         return indexSearchRequest.result
 
@@ -35,17 +35,17 @@ class IndexSearcher:
             (ret, retCode) = self._indexManager.Fetch(termId)
             if retCode == True:
                 if self._logger.isEnabledFor(logging.DEBUG):
-                    self._logger.debug('fetch term ' + str(termId) + ' success')
+                    self._logger.debug('fetch term %d success' % termId)
                 indexSearchRequest.indexHandler.Add(ret)
             else:
                 if ret == None:
                     if self._logger.isEnabledFor(logging.DEBUG):
-                        self._logger.debug('term ' + str(termId) + ' not exist')
+                        self._logger.debug('term %d not exist' % termId)
                     indexSearchRequest.result = None
                     return
                 else:
                     if self._logger.isEnabledFor(logging.DEBUG):
-                        self._logger.debug('fetch term ' + str(termId) + ' from diskio')
+                        self._logger.debug('fetch term %d from diskio' % termId)
                     indexSearchRequest.waitingIORequests.append(ret)
         self._searchThreads.apply(self._Searching, (indexSearchRequest,))
 
@@ -56,6 +56,6 @@ class IndexSearcher:
             readRequest.Wait()
             indexHandler.Add(readRequest.result)
         if self._logger.isEnabledFor(logging.DEBUG):
-            self._logger.debug('all posting list are ready, request id: ' +
-                               str(indexSearchRequest.id))
+            self._logger.debug('all posting list are ready, request id: %s'
+                               % indexSearchRequest.id)
         indexSearchRequest.result = indexHandler.Intersect()

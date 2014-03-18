@@ -17,7 +17,8 @@ class IndexIOManager(DiskIOManager):
 
     def _CreateReader(self, ioRequest):
         if self._logger.isEnabledFor(logging.DEBUG):
-            self._logger.debug('create reader for io request:' + ioRequest.id)
+            self._logger.debug('create reader for io request:%s'
+                               % ioRequest.id)
         return IndexReaderFactory.Get()
 
 class IndexIOManagerThread(Thread):

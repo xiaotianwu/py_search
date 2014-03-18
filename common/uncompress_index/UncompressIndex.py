@@ -204,14 +204,16 @@ class UncompressIndexHandler:
         self._indexContainer.append(index)
 
     def Intersect(self):
-        assert len(self._indexContainer) >= 2
+        if len(self._indexContainer) == 1:
+            return self._indexContainer[0]
         result = self._indexContainer[0] & self._indexContainer[1]
         for i in range(2, len(self._indexContainer)):
             result &= self._indexContainer[i]
         return result
 
     def Union(self):
-        assert len(self._indexContainer) >= 2
+        if len(self._indexContainer) == 1:
+            return self._indexContainer[0]
         result = self._indexContainer[0] | self._indexContainer[1]
         for i in range(2, len(self._indexContainer)):
             result |= self._indexContainer[i]
