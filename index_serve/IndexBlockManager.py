@@ -32,12 +32,15 @@ class IndexBlockManager:
         for mapping in allMapping:
             mapping = mapping.split(':')
             assert len(mapping) >= 3
-            docidRange = mapping[0].split(',')
-            key = int(docidRange[0])
-            block = IndexBlock(key,
-                               int(docidRange[1]),
-                               mapping[1], mapping[2])
-            self._blockTree.Insert(key, block)
+            termidRange = mapping[0].split(',')
+            termidStart = int(termidRange[0])
+            termidEnd = int(termidRange[1])
+            mappingFile = self._indexFolder + '/' + mapping[1]
+            blockType = mapping[2]
+            block = IndexBlock(termidStart, termidEnd,
+                               mappingFile, blockType)
+            # redundancy in key, val
+            self._blockTree.Insert(termidStart, block)
 
     def GetBlock(self, termId):
         key, block = self._blockTree.LowerBound(termId)

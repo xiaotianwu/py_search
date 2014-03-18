@@ -1,5 +1,4 @@
 from common.Logger import Logger
-
 from IndexBlockManager import IndexBlockManager
 from IndexConfig import IndexReaderFactory
 from IndexConfig import IndexWriterFactory
@@ -20,20 +19,22 @@ class IndexManager:
 
     def _InitIndex(self):
         readEvents = []
+        reqCollections = []
         allBlocks = self._indexBlockManager.GetAllBlocks()
         for block in allBlocks:
             if block.type == 'mem':
-               req = IndexIORequest('READALL', block.mappingFile)
-               readEvents.append(self._IndexIOManager.PostIORequest(req))
-        merger = IndexMergerFactory.Get()
+               req = IndexIORequest('READALL', block.mappingFile, None)
+               readEvents.append(self._indexIOManager.PostIORequest(req))
+               reqCollections.append(req)
         # mem index loading is sync
         for event in readEvents:
             event.wait()
-            merger.Add(event.result)
+        merger = IndexMergerFactory.Get()
+        for req in reqCollections:
+            merger.Add(req.result)
         self._index = merger.DoMerge()
-        for event in readEvents:
-            del event.result
         del readEvents
+        del reqCollections
 
     def Fetch(self, termId):
         index = self._index.Fetch(termId)
