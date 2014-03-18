@@ -49,21 +49,17 @@ class IndexIOManagerTest(unittest.TestCase):
         os.system('rm testdata -r')  
 
     def testRandomRead(self):
-        events = []
         requests = []
 
         for i in range(0, 5000):
             fileName = 'testdata/testFile' + str(i % 10)
             req = IndexIORequest('READ', fileName,
-                            random.randint(0, 9999))
+                                 random.randint(0, 9999))
             requests.append(req)
-            ev = self._ioManagerThread.PostIORequest(req)
-            events.append(ev)
-
-        for ev in events:
-            ev.wait()
+            self._ioManagerThread.PostIORequest(req)
 
         for req in requests:
+            req.Wait()
             self.assertEqual(req.result, self._index.Fetch(req.key))
         
         #manager.PostStopRequest()

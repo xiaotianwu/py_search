@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import os
+import pdb
 import time
 import unittest
 
@@ -11,35 +12,39 @@ class IndexManagerTest(unittest.TestCase):
     _index = None
     _indexManager = None
     _indexFiles = None
+    s1 = None
+    s2 = None
+    s3 = None
+    s4 = None
 
     def CreateTestIndex(self):
-        s1 = UncompressIndex()
+        self.s1 = UncompressIndex()
         for i in range(0, 3):
-            s1.Add(i, GenRandomIndex())
+            self.s1.Add(i, GenRandomIndex())
         testFile1 = 'test1.mem.index'
         writer = UncompressIndexWriter()
-        writer.Write(s1, testFile1)
+        writer.Write(self.s1, testFile1)
         print testFile1, 'created'
-        s2 = UncompressIndex()
+        self.s2 = UncompressIndex()
         for i in range(3, 6):
-            s2.Add(i, GenRandomIndex())
+            self.s2.Add(i, GenRandomIndex())
         testFile2 = 'test2.disk.index'
         writer = UncompressIndexWriter()
-        writer.Write(s2, testFile2)
+        writer.Write(self.s2, testFile2)
         print testFile2, 'created'
-        s3 = UncompressIndex()
+        self.s3 = UncompressIndex()
         for i in range(6, 11):
-            s3.Add(i, GenRandomIndex())
+            self.s3.Add(i, GenRandomIndex())
         testFile3 = 'test3.mem.index'
         writer = UncompressIndexWriter()
-        writer.Write(s3, testFile3)
+        writer.Write(self.s3, testFile3)
         print testFile3, 'created'
-        s4 = UncompressIndex()
+        self.s4 = UncompressIndex()
         for i in range(11, 20):
-            s4.Add(i, GenRandomIndex())
-        testFile4 = 'test4.mem.index'
+            self.s4.Add(i, GenRandomIndex())
+        testFile4 = 'test4.disk.index'
         writer = UncompressIndexWriter()
-        writer.Write(s4, testFile4)
+        writer.Write(self.s4, testFile4)
         print testFile4, 'created'
         self._indexFiles = [testFile1, testFile2, testFile3, testFile4]
 
@@ -57,6 +62,21 @@ class IndexManagerTest(unittest.TestCase):
 
     def testManager(self):
         self.assertTrue(self._indexManager.IsReady())
-
+        for i in range(0, 3):
+            self.assertEqual(self._indexManager.Fetch(i)[0], self.s1.Fetch(i))
+        #pdb.set_trace()
+        for i in range(3, 6):
+            (req, retCode) = self._indexManager.Fetch(i)
+            self.assertFalse(retCode)
+            req.Wait()
+            self.assertEqual(req.result, self.s2.Fetch(i))
+        for i in range(6, 11):
+            self.assertEqual(self._indexManager.Fetch(i)[0], self.s3.Fetch(i))
+        for i in range(11, 20):
+            (req, retCode) = self._indexManager.Fetch(i)
+            self.assertFalse(retCode)
+            req.Wait()
+            self.assertEqual(req.result, self.s4.Fetch(i))
+             
 if __name__ == '__main__':
     unittest.main()

@@ -13,3 +13,6 @@ class IORequest:
         self.id = str(uuid.uuid4())
         self.retCode = 0 # TODO use enum to replace it
         self.finishEvent = None
+
+    def Wait(self):
+        self.finishEvent.wait()

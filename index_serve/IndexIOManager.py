@@ -29,7 +29,7 @@ class IndexIOManagerThread(Thread):
         self._manager.Run() 
 
     def PostIORequest(self, request):
-        return self._manager.PostIORequest(request)
+        self._manager.PostIORequest(request)
 
     def PostStopRequest(self):
         self._manager.PostStopRequest()

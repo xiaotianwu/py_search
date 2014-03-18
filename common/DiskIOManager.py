@@ -73,7 +73,6 @@ class DiskIOManager:
             newEvent.set()
         else:
             self._ioRequestQueue.put(ioRequest)
-        return newEvent
 
     def _Read(self, ioRequest):
         # TODO double check cache

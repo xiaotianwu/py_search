@@ -18,22 +18,19 @@ class IndexManager:
         self._allReady = True
 
     def _InitIndex(self):
-        readEvents = []
         reqCollections = []
         allBlocks = self._indexBlockManager.GetAllBlocks()
         for block in allBlocks:
             if block.type == 'mem':
                req = IndexIORequest('READALL', block.mappingFile, None)
-               readEvents.append(self._indexIOManager.PostIORequest(req))
                reqCollections.append(req)
+               self._indexIOManager.PostIORequest(req)
         # mem index loading is sync
-        for event in readEvents:
-            event.wait()
         merger = IndexMergerFactory.Get()
         for req in reqCollections:
+            req.Wait()
             merger.Add(req.result)
         self._index = merger.DoMerge()
-        del readEvents
         del reqCollections
 
     def Fetch(self, termId):
@@ -45,8 +42,8 @@ class IndexManager:
             if block == None:
                 return (None, False)
             req = IndexIORequest('READ', block.mappingFile, termId)
-            readEvent = self._indexIOManager.PostIORequest(req)
-            return (readEvent, False)
+            self._indexIOManager.PostIORequest(req)
+            return (req, False)
 
     def Stop(self):
         self._indexIOManager.PostStopRequest()
