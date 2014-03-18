@@ -3,10 +3,10 @@
 import os
 import unittest
 
+from common.Common import GenRandomIndex
+from common.uncompress_index.UncompressIndex import *
 from IndexManager import IndexManager
 from IndexSearcher import IndexSearcher
-
-indexFileName = 'test.index'
 
 class IndexSearcherTest(unittest.TestCase):
 
@@ -46,7 +46,7 @@ class IndexSearcherTest(unittest.TestCase):
         mappingStr = '0,2:test1.mem.index:mem;3,5:test2.disk.index:disk;' +\
                      '6,10:test3.mem.index:mem;11,19:test4.disk.index:disk'
         self._indexManager = IndexManager(4, 3, '.', mappingStr)
-        self._indexSearcher = IndexSearcher(indexManager)
+        self._indexSearcher = IndexSearcher(1, self._indexManager)
 
     def tearDown(self):
         print 'test done'
@@ -55,10 +55,10 @@ class IndexSearcherTest(unittest.TestCase):
             os.remove(f)
 
     def testSearcher(self):
-        assert indexSearcher.search([0, 1]) == set()
-        assert indexSearcher.search([1, 2]) == set([2, 3])
-        assert indexSearcher.search([1, 2, 3]) == set([3])
-        assert indexSearcher.search([1, 2, 3, 4]) == set()
+        self._indexSearcher.Search([0, 1])
+        self._indexSearcher.Search([1, 2])
+        self._indexSearcher.Search([1, 2, 3])
+        self._indexSearcher.Search([1, 2, 3, 4])
 
 if __name__ == '__main__':
     unittest.main()

@@ -19,30 +19,33 @@ class IndexSearcher:
     '''the worker to do docid matching'''
     def __init__(self, searchThreadNum, indexManager):
         self._indexManager = indexManager
-        self._logger = Logger.get('IndexSearcher')
+        self._logger = Logger.Get('IndexSearcher')
         self._searchThreads = Pool(searchThreadNum)
 
-    # proc search_perpare -> searching -> search_done TODO make the proc async
-    def PostSearchRequest(self, indexSearchRequest):
+    def Search(self, termIdList):
+        indexSearchRequest = IndexSearchRequest(termIdList)
         if self._logger.isEnabledFor(logging.DEBUG):
             self._logger.debug('SearchPrepare, termIdList = ' + str(termIdList))
-        self._SearchPrepare(indexSearchRequest)
+        self._Search(indexSearchRequest)
+        return indexSearchRequest.result
 
-    def _SearchPrepare(self, indexSearchRequest):
+    def _Search(self, indexSearchRequest):
+        termIdList = indexSearchRequest.termIdList
         for termId in termIdList:
-            if self._logger.isEnabledFor(logging.DEBUG):
-                self._logger.debug('fetch term ' + str(termId))
             (ret, retCode) = self._indexManager.Fetch(termId)
             if retCode == True:
                 if self._logger.isEnabledFor(logging.DEBUG):
                     self._logger.debug('fetch term ' + str(termId) + ' success')
-                indexSearchRequest.indexHandler.add(ret)
+                indexSearchRequest.indexHandler.Add(ret)
             else:
                 if ret == None:
                     if self._logger.isEnabledFor(logging.DEBUG):
                         self._logger.debug('term ' + str(termId) + ' not exist')
-                    return None
+                    indexSearchRequest.result = None
+                    return
                 else:
+                    if self._logger.isEnabledFor(logging.DEBUG):
+                        self._logger.debug('fetch term ' + str(termId) + ' from diskio')
                     indexSearchRequest.waitingIORequests.append(ret)
         self._searchThreads.apply(self._Searching, (indexSearchRequest,))
 
@@ -53,6 +56,6 @@ class IndexSearcher:
             readRequest.Wait()
             indexHandler.Add(readRequest.result)
         if self._logger.isEnabledFor(logging.DEBUG):
-            self._logger.debug('all posting list are ready, searching for id: ' +
-                               indexSearchRequest.id)
+            self._logger.debug('all posting list are ready, request id: ' +
+                               str(indexSearchRequest.id))
         indexSearchRequest.result = indexHandler.Intersect()
