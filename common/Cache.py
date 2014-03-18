@@ -41,8 +41,8 @@ class Cache:
 
     def Add(self, key, value):
         if key in self._hashTable:
-            if self._logger.isEnabledFor(logging.DEBUG):
-                self._logger.debug('can not insert same key ' + str(key))
+            if self._logger.isEnabledFor(logging.ERROR):
+                self._logger.error('can not insert same key ' + str(key))
             return
         newNode = Cache.Node(key, value)
         self._hashTable[key] = newNode

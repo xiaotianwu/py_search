@@ -61,7 +61,7 @@ class DiskIOManager:
         ioRequest.finishEvent = newEvent
         cachedData = None
         if self._cache != None:
-            cachedData = self._cache.Fetch(ioRequest.key);
+            cachedData = self._cache.Fetch(ioRequest.key)
         # if data in cache, return directly
         if cachedData != None:
             if self._logger.isEnabledFor(logging.DEBUG):
@@ -76,25 +76,29 @@ class DiskIOManager:
         return newEvent
 
     def _Read(self, ioRequest):
-        fileName = ioRequest.fileName
-        # it's a heavy lock. Fortunately, file never be closed during
-        # runtime, such that we needn't create reader in most case
-        with Locking(self._fileReadersLock):
-            if fileName not in self._fileReaders:
-                if self._logger.isEnabledFor(logging.DEBUG):
-                    self._logger.debug('create reader for ' + fileName)
-                reader = self._CreateReader(ioRequest)
-                reader.Open(fileName)
-                self._fileReaders[fileName] = reader
-            reader = self._fileReaders[fileName]
-
-        key = ioRequest.key
-        data = reader.DoRequest(ioRequest)
+        # TODO double check cache
+        data = None
+        if self._cache != None:
+            data = self._cache.Fetch(ioRequest.key)
+        if data == None:
+            fileName = ioRequest.fileName
+            # it's a heavy lock. Fortunately, file never be closed during
+            # runtime, such that we needn't create reader in most case
+            with Locking(self._fileReadersLock):
+                if fileName not in self._fileReaders:
+                    if self._logger.isEnabledFor(logging.DEBUG):
+                        self._logger.debug('create reader for ' + fileName)
+                    reader = self._CreateReader(ioRequest)
+                    reader.Open(fileName)
+                    self._fileReaders[fileName] = reader
+                reader = self._fileReaders[fileName]
+            data = reader.DoRequest(ioRequest)
         ioRequest.result = data
+
         if self._logger.isEnabledFor(logging.DEBUG):
             self._logger.debug('finished read request: ' + str(ioRequest.id))
         ioRequest.finishEvent.set()
-
+        key = ioRequest.key
         if self._cache != None:
             self._cache.Add(key, data)
 
