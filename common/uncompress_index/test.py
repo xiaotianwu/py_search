@@ -3,8 +3,8 @@
 from ctypes import *
 
 class TestStruct(Structure):
-    _fields_ = [('data', POINTER(c_int)),
-                ('len', c_int)]
+    _fields_ = [('data', POINTER(c_uint)),
+                ('len', c_uint)]
 
 if __name__ == '__main__':
     mylib = CDLL('/root/py_search/common/uncompress_index/test.so')

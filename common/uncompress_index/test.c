@@ -1,18 +1,19 @@
 #include "test.h"
 
+#include <stdint.h>
 #include <malloc.h>
 
 struct TestStruct
 {
-    int* data;
-    int len;
+    uint32_t* data;
+    uint32_t len;
 };
 
 void TestFunc(struct TestStruct* testStruct)
 {
     testStruct->len = 10;
-    testStruct->data = (int*)malloc(sizeof(int) * testStruct->len);
-    for (int i = 0; i < testStruct->len; ++i) {
+    testStruct->data = (uint32_t*)malloc(sizeof(uint32_t) * testStruct->len);
+    for (uint32_t i = 0; i < testStruct->len; ++i) {
         testStruct->data[i] = i;
     }
 }

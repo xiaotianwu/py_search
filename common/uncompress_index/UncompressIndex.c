@@ -1,39 +1,28 @@
+#include <malloc.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 #include "UncompressIndex.h"
 
-struct DocScorePair
+DocidSet Intersect(UncompressIndex* indexLists, uint32_t listSize)
 {
-    uint32_t docid;
-    uint32_t score;
-};
-
-struct UncompressIndex
-{
-    uint32_t postingListLen;
-    struct DocScorePair* postingList;
-};
-
-struct UncompressIndexHandler
-{
-    struct UncompressIndex* index;
-    uint32_t curPos;
-};
-
-void Intersect(struct UncompressIndex* indexLists, uint32_t listSize)
-{
-    struct UncompressIndexHandler* handlers = (struct UncompressIndexHandler*)malloc(sizeof(struct UncompressIndexHandler) * listSize);
-    for (int32_t i = 0; i < listSize; ++i) {
+    UncompressIndexHandler* handlers =
+        (UncompressIndexHandler*)malloc(
+            sizeof(UncompressIndexHandler) * listSize);
+    for (uint32_t i = 0; i < listSize; ++i) {
         handlers[i].index = indexLists[i];
         handlers[i].curPos = 0;
     }
     uint32_t targetDocid = 0;
+    DocidSet docidSet;
     while (true) {
         uint32_t nextTargetDocid = 0;
         bool found = true;
-        for (int32_t i = 0; i < listSize; ++i) {
-            uint32_t docid = MoveToNext(handler, targetDocId);
-            if (docid == -1) {
+        for (uint32_t i = 0; i < listSize; ++i) {
+            uint32_t docid = MoveToNext(handlers[i], targetDocid);
+            if (docid == UINT32_MAX) {
                 goto quit;
             }
             if (docid > targetDocid) {
@@ -43,26 +32,29 @@ void Intersect(struct UncompressIndex* indexLists, uint32_t listSize)
                 nextTargetDocid = docid;
             }
         }
-        if (found == true) {
-            // add to result
+        if (found) {
+            // PushBack(docidSet.set, targetDocid)
+            // docidSet.len++;
         }
         targetDocid = nextTargetDocid;
     }
 quit:
-    // do gc here
+    return docidSet;
 }
 
-void MoveToNext(struct UncompressIndexHandler handler, uint32_t targetDocId)
+static uint32_t MoveToNext(UncompressIndexHandler handler,
+                           uint32_t targetDocId)
 {
-    struct DocScorePair* postingList = handler.index->postingList;
-    int32_t maxLen = handler.index->postingList;
-    while (handler.curPos <= maxLen && postingList[curPos].docid < targetDocId) {
+    DocScorePair* postingList = handler.index.postingList;
+    int32_t maxLen = handler.index.len;
+    while (handler.curPos <= maxLen &&
+           postingList[handler.curPos].docid < targetDocId) {
         handler.curPos++;
     }
     if (handler.curPos == maxLen) {
-        return -1;
+        return UINT32_MAX;
     }
     else {
-        return handler.index->postingList[handler.curPos].docid;
+        return handler.index.postingList[handler.curPos].docid;
     }
 }
