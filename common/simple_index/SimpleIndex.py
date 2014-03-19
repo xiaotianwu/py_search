@@ -9,8 +9,8 @@ from common.Common import Locking
 from common.Logger import Logger
 from common.IORequestType import IORequest
 
-class UncompressIndex:
-    '''UncompressIndex Structure: Dict
+class SimpleIndex:
+    '''SimpleIndex Structure: Dict
        Key: TermId
        Value: (DocId1, ScoreOfDoc1), (DocId2, ScoreOfDoc2), ...'''
 
@@ -37,11 +37,11 @@ class UncompressIndex:
         else:
             return None
 
-# UncompressIndex File Struct
+# SimpleIndex File Struct
 # File Begin
 # [PostingList]
-# PostingList1(TermId1: docid1,score1,docid2,score2...),
-# PostingList2(TermId2: docid1,score1,docid2,score2...),
+# PostingList1(TermId1: docid1,docid2,...),
+# PostingList2(TermId2: docid1,docid2,...),
 # ...
 # [Dict of postinglist offset]
 # TermId1, Offset of PostingList1
@@ -51,14 +51,14 @@ class UncompressIndex:
 # File End
 UINT32_STR_LEN= 32
 
-class UncompressIndexWriter:
+class SimpleIndexWriter:
     def __init__(self):
-        self._logger = Logger.Get('UncompressIndexWriter')
+        self._logger = Logger.Get('SimpleIndexWriter')
 
     def Write(self, indexMap, indexFileName):
-        if not isinstance(indexMap, UncompressIndex):
-            raise TypeError('input must be UncompressIndex')
-        self._logger.info('write UncompressIndex file: ' + indexFileName)
+        if not isinstance(indexMap, SimpleIndex):
+            raise TypeError('input must be SimpleIndex')
+        self._logger.info('write SimpleIndex file: ' + indexFileName)
         indexFile = open(indexFileName, 'wb')
         offset = 0
         indexOffsetMap = {}
@@ -86,9 +86,9 @@ class UncompressIndexWriter:
         indexFile.close()
         self._logger.info('finish write')
  
-class UncompressIndexReader:
+class SimpleIndexReader:
     def __init__(self, isMMap = False):
-        self._logger = Logger.Get('UncompressIndexReader')
+        self._logger = Logger.Get('SimpleIndexReader')
         self._offsetMap = None
         self._indexFileDesc = None
         self._indexFileMMap = None
@@ -99,7 +99,7 @@ class UncompressIndexReader:
     def Open(self, indexFileName):
         '''open index file and get the mapping of postingList offset'''
         '''open is not thread-safe'''
-        self._logger.info('open UncompressIndex file: ' + indexFileName +
+        self._logger.info('open SimpleIndex file: ' + indexFileName +
                           ' mmap: ' + str(self._isMMap))
         self._indexFileName = indexFileName
         self._indexFileDesc = open(indexFileName, 'r')
@@ -131,8 +131,8 @@ class UncompressIndexReader:
                 raise TypeError('offset map read failed')
 
     def ReadAll(self):
-        '''get the entire UncompressIndex from the file'''
-        index = UncompressIndex()
+        '''get the entire SimpleIndex from the file'''
+        index = SimpleIndex()
         with Locking(self._fileLock):
             for (termid, value) in self._offsetMap.items():
                 if self._logger.isEnabledFor(logging.DEBUG):
@@ -189,11 +189,11 @@ class UncompressIndexReader:
         self._indexFileDesc.close()
         self._indexFileMMap = None
         self._indexFileDesc = None
-        self._logger.info('close UncompressIndex file: ' +
+        self._logger.info('close SimpleIndex file: ' +
                           self._indexFileName)
         self._indexFilename = None
 
-class UncompressIndexHandler:
+class SimpleIndexHandler:
     def __init__(self):
         self._indexContainer = []
 
@@ -219,18 +219,18 @@ class UncompressIndexHandler:
             result |= self._indexContainer[i]
         return result
 
-class UncompressIndexMerger:
+class SimpleIndexMerger:
     def __init__(self):
         self._indexToMergeList = []
 
-    def Add(self, uncompressIndex):
-        if not isinstance(uncompressIndex, UncompressIndex):
+    def Add(self, simpleIndex):
+        if not isinstance(simpleIndex, SimpleIndex):
             raise Exception('incorrect type')
-        self._indexToMergeList.append(uncompressIndex)
+        self._indexToMergeList.append(simpleIndex)
 
     def DoMerge(self):
-        mergedIndex = UncompressIndex()
-        for uncompressIndex in self._indexToMergeList:
-            for termId in uncompressIndex.GetIndexMap().keys():
-                mergedIndex.Add(termId, uncompressIndex.Fetch(termId))
+        mergedIndex = SimpleIndex()
+        for simpleIndex in self._indexToMergeList:
+            for termId in simpleIndex.GetIndexMap().keys():
+                mergedIndex.Add(termId, simpleIndex.Fetch(termId))
         return mergedIndex

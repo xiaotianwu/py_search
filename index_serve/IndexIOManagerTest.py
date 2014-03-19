@@ -8,8 +8,8 @@ import threading
 import unittest
 
 from common.Common import GenRandomIndex
-from common.uncompress_index.UncompressIndex import UncompressIndex
-from common.uncompress_index.UncompressIndex import UncompressIndexWriter
+from common.simple_index.SimpleIndex import SimpleIndex
+from common.simple_index.SimpleIndex import SimpleIndexWriter
 from IndexIOManager import IndexIOManagerThread
 from IndexIOManager import IndexIORequest
 
@@ -20,13 +20,13 @@ class IndexIOManagerTest(unittest.TestCase):
         if os.path.exists('testdata'):
             shutil.rmtree('testdata')
         os.mkdir('testdata')
-        index = UncompressIndex()
+        index = SimpleIndex()
         for i in range(0, 10000):
             index.Add(i, GenRandomIndex())
     
         fileNameBase = 'testdata/testFile' + str(begin)
         print('create index file' + fileNameBase)
-        writer = UncompressIndexWriter()
+        writer = SimpleIndexWriter()
         writer.Write(index, fileNameBase)
     
         for i in range(begin + 1, end):

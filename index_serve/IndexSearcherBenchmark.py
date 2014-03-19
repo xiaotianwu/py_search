@@ -53,3 +53,13 @@ if __name__ == '__main__':
     #for termIdList in testSet:
     #    result = indexSearcher.search(termIdList)
     #    print result
+
+            #termIdList.append(self.GenRandomTermIdList())
+        #print 'start searching'
+        #t = time.localtime()
+        #t1 = t.tm_min * 60 + t.tm_sec
+        #for item in termIdList:
+        #    self._indexSearcher.Search(item)
+        #t = time.localtime()
+        #t2 = t.tm_min * 60 + t.tm_sec
+        #print 'start = %d, end = %d' % (t1, t2)

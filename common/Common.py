@@ -93,12 +93,11 @@ def GenRandomIndex():
     s = set()
     randomIndexLen = 1000
     while i < randomIndexLen:
-        (item1, item2) = (random.randint(0, 10000),
-                          random.randint(0, 10000))
-        if (item1, item2) in s:
+        item = random.randint(0, 10000)
+        if item in s:
             continue
         else:
-            s.add((item1, item2))
+            s.add(item)
             i += 1
     return s
 

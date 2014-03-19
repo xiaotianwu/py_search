@@ -4,7 +4,7 @@ import os
 import ConfigParser
 
 from common.Logger import Logger
-from common.uncompress_index.UncompressIndex import *
+from common.simple_index.SimpleIndex import *
 
 configParserLogger = Logger.Get('IndexConfig')
 
@@ -26,8 +26,8 @@ class IndexHandlerFactory():
     @staticmethod
     def Get():
         global INDEXTYPE
-        if INDEXTYPE == 'UncompressIndex':
-            return UncompressIndexHandler()
+        if INDEXTYPE == 'SimpleIndex':
+            return SimpleIndexHandler()
         else:
             raise Exception('unknown index type')
 
@@ -35,8 +35,8 @@ class IndexWriterFactory():
     @staticmethod
     def Get():
         global INDEXTYPE
-        if INDEXTYPE == 'UncompressIndex':
-            return UncompressIndexWriter()
+        if INDEXTYPE == 'SimpleIndex':
+            return SimpleIndexWriter()
         else:
             raise Exception('unknown index type')
 
@@ -45,8 +45,8 @@ class IndexReaderFactory():
     def Get():
         global INDEXTYPE, MMAP
         isMMap = False if MMAP == 0 else True
-        if INDEXTYPE == 'UncompressIndex':
-            return UncompressIndexReader(isMMap)
+        if INDEXTYPE == 'SimpleIndex':
+            return SimpleIndexReader(isMMap)
         else:
             raise Exception('unknown index type')
 
@@ -54,7 +54,7 @@ class IndexMergerFactory():
     @staticmethod
     def Get():
         global INDEXTYPE
-        if INDEXTYPE == 'UncompressIndex':
-            return UncompressIndexMerger()
+        if INDEXTYPE == 'SimpleIndex':
+            return SimpleIndexMerger()
         else:
             raise Exception('unknown index type')
