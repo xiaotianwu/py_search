@@ -1,20 +1,29 @@
+#ifndef VECTOR_H 
+#define VECTOR_H
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct _VectorInt
+#define CreateVector_int32() _CreateVector(sizeof(int32_t))
+#define PushBack_int32(v, ptr) _PushBack(v, sizeof(int32_t), ptr)
+#define At_int32(v, i) ((int32_t*)_At(v, sizeof(int32_t), i))
+
+typedef struct _Vector
 {
     uint32_t len;
     uint32_t capacity;
-    int32_t* array;
-} VectorInt;
+    void* array;
+} Vector;
 
-VectorInt CreateVectorInt();
+Vector _CreateVector(size_t);
 
-bool PushBack(VectorInt*, int32_t);
+bool _PushBack(Vector*, size_t, void*);
 
-int32_t PopBack(VectorInt*);
+void _PopBack(Vector*, size_t);
 
-int32_t At(VectorInt*, uint32_t);
+void* _At(Vector*, size_t, uint32_t);
 
-bool Empty(VectorInt*);
+bool Empty(Vector*);
+
+#endif
