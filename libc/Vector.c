@@ -20,13 +20,13 @@ bool _PushBack(Vector* v, size_t elemSize, void* newElem)
     if (v->len >= v->capacity) {
         // growth factor is approximately 1.5
         v->capacity = (v->capacity * 3) >> 1;
-        void* newArea =
+        void* reallocArea =
             (void*)realloc(v->array, v->capacity * elemSize);
-        if (newArea == NULL) {
+        if (reallocArea == NULL) {
             return false;
         }
         else {
-            v->array = newArea;
+            v->array = reallocArea;
         }
     }
     return true;
@@ -34,10 +34,18 @@ bool _PushBack(Vector* v, size_t elemSize, void* newElem)
 
 void _PopBack(Vector* v, size_t elemSize)
 {
-    if (--v->len < v->capacity / 8) {
-        v->capacity >>= 3;
-        void* newArea =
+    if (v->len == 0) {
+        return;
+    }
+    if (--v->len == 0) {
+        return;
+    }
+    uint32_t shrinkCapacity = (v->capacity >> 3) + 1;
+    if (v->len < shrinkCapacity - 1) {
+        v->capacity = shrinkCapacity;
+        void* reallocArea =
             (void*)realloc(v->array, v->capacity * elemSize);
+        v->array = reallocArea;
     }
 }
 
@@ -49,7 +57,16 @@ void* _At(Vector* v, size_t elemSize, uint32_t index)
     return v->array + index * elemSize;
 }
 
+void ReleaseVector(Vector* v)
+{
+    free(v->array);
+    v->array = NULL;
+    v->len = 0;
+    v->capacity = 0;
+}
+
 bool Empty(Vector* v)
 {
     return v->len == 0;
 }
+

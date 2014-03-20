@@ -13,5 +13,9 @@ int main(int argc, char** argv)
         int32_t j = *At_int32(&vInt, i);
         assert(j == i);
     }
+    for (int32_t i = 0; i < 8192; ++i) {
+        PopBack_int32(&vInt);
+    }
+    ReleaseVector(&vInt);
     return 0;
 }
