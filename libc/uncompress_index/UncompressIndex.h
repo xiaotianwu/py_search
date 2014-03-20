@@ -9,25 +9,25 @@ typedef struct _DocScorePair
     // uint32_t score;
 } DocScorePair;
 
-typedef struct _UncompressIndex
+typedef struct _PostingList
 {
     uint32_t len;
-    DocScorePair* postingList;
-} UncompressIndex;
+    DocScorePair* list;
+} PostingList;
 
-typedef struct _UncompressIndexHandler
+typedef struct _PostingListHandler
 {
-    UncompressIndex index;
+    PostingList postingList;
     uint32_t curPos;
-} UncompressIndexHandler;
+} PostingListHandler;
 
 typedef struct _DocidSet
 {
-    uint32_t* set;
+    uint32_t* docids;
     uint32_t len;
 } DocidSet;
 
-static uint32_t MoveToNext(UncompressIndexHandler, uint32_t);
-DocidSet Intersect(UncompressIndex*, uint32_t);
+static uint32_t Next(PostingListHandler*, uint32_t);
+DocidSet Intersect(PostingList*, uint32_t);
 
 #endif

@@ -12,7 +12,7 @@ DocidSet Intersect(UncompressIndex* indexLists, uint32_t listSize)
         (UncompressIndexHandler*)malloc(
             sizeof(UncompressIndexHandler) * listSize);
     for (uint32_t i = 0; i < listSize; ++i) {
-        handlers[i].index = indexLists[i];
+        handlers[i].postingList = indexLists[i];
         handlers[i].curPos = 0;
     }
     uint32_t targetDocid = 0;
@@ -21,7 +21,7 @@ DocidSet Intersect(UncompressIndex* indexLists, uint32_t listSize)
         uint32_t nextTargetDocid = 0;
         bool found = true;
         for (uint32_t i = 0; i < listSize; ++i) {
-            uint32_t docid = MoveToNext(handlers[i], targetDocid);
+            uint32_t docid = Next(handlers[i], targetDocid);
             if (docid == UINT32_MAX) {
                 goto quit;
             }
@@ -45,19 +45,19 @@ quit:
     return docidSet;
 }
 
-static uint32_t MoveToNext(UncompressIndexHandler handler,
-                           uint32_t targetDocId)
+static uint32_t Next(PostingListHandler* handler,
+                     uint32_t targetDocId)
 {
-    DocScorePair* postingList = handler.index.postingList;
-    int32_t maxLen = handler.index.len;
-    while (handler.curPos <= maxLen &&
+    DocScorePair* postingList = handler.postingList.list;
+    uint32_t len = handler.postingList.len;
+    while (handler.curPos < len &&
            postingList[handler.curPos].docid < targetDocId) {
         handler.curPos++;
     }
-    if (handler.curPos == maxLen) {
+    if (handler.curPos == len) {
         return UINT32_MAX;
     }
     else {
-        return handler.index.postingList[handler.curPos].docid;
+        return handler.postingList.list[handler.curPos].docid;
     }
 }
