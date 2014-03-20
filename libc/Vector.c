@@ -1,6 +1,7 @@
 #include <malloc.h>
 #include <string.h>
 
+#include "Macro.h"
 #include "Vector.h"
 
 Vector _CreateVector(size_t elemSize)
@@ -17,12 +18,12 @@ bool _PushBack(Vector* v, size_t elemSize, void* newElem)
 {
     memcpy(v->array + (v->len * elemSize), newElem, elemSize);
     v->len++;
-    if (v->len >= v->capacity) {
+    if (UNLIKELY(v->len >= v->capacity)) {
         // growth factor is approximately 1.5
         v->capacity = (v->capacity * 3) >> 1;
         void* reallocArea =
             (void*)realloc(v->array, v->capacity * elemSize);
-        if (reallocArea == NULL) {
+        if (UNLIKELY(reallocArea == NULL)) {
             return false;
         }
         else {
@@ -34,14 +35,14 @@ bool _PushBack(Vector* v, size_t elemSize, void* newElem)
 
 void _PopBack(Vector* v, size_t elemSize)
 {
-    if (v->len == 0) {
+    if (UNLIKELY(v->len == 0)) {
         return;
     }
-    if (--v->len == 0) {
+    if (UNLIKELY(--v->len == 0)) {
         return;
     }
     uint32_t shrinkCapacity = (v->capacity >> 3) + 1;
-    if (v->len < shrinkCapacity - 1) {
+    if (UNLIKELY(v->len < shrinkCapacity - 1)) {
         v->capacity = shrinkCapacity;
         void* reallocArea =
             (void*)realloc(v->array, v->capacity * elemSize);
@@ -51,7 +52,7 @@ void _PopBack(Vector* v, size_t elemSize)
 
 void* _At(Vector* v, size_t elemSize, uint32_t index)
 {
-    if (index >= v->len) {
+    if (UNLIKELY(index >= v->len)) {
         return NULL;
     }
     return v->array + index * elemSize;
