@@ -16,7 +16,7 @@ DocidSet Intersect(UncompressIndex* indexLists, uint32_t listSize)
         handlers[i].curPos = 0;
     }
     uint32_t targetDocid = 0;
-    DocidSet docidSet;
+    Vector docids = CreateVector_uint32();
     while (true) {
         uint32_t nextTargetDocid = 0;
         bool found = true;
@@ -33,12 +33,15 @@ DocidSet Intersect(UncompressIndex* indexLists, uint32_t listSize)
             }
         }
         if (found) {
-            // PushBack(docidSet.set, targetDocid)
-            // docidSet.len++;
+            PushBack_uint32(docids, targetDocid)
         }
         targetDocid = nextTargetDocid;
     }
 quit:
+    DocidSet docidSet = {
+        .set = docids.array,
+        .len = docis.len,
+    };
     return docidSet;
 }
 

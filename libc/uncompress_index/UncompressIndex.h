@@ -1,3 +1,6 @@
+#ifndef UNCOMPRESS_INDEX_H
+#define UNCOMPRESS_INDEX_H
+
 #include <stdint.h>
 
 typedef struct _DocScorePair
@@ -26,3 +29,5 @@ typedef struct _DocidSet
 
 static uint32_t MoveToNext(UncompressIndexHandler, uint32_t);
 DocidSet Intersect(UncompressIndex*, uint32_t);
+
+#endif
