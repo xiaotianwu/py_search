@@ -1,4 +1,4 @@
-a simple python search engine
+a simple python search engine, but we still need a little bit help of C
 
  Dependency:
      Apache Thrift
