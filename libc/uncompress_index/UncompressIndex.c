@@ -4,43 +4,69 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "../Vector.h"
 #include "UncompressIndex.h"
 
-DocidSet Intersect(UncompressIndex* indexLists, uint32_t listSize)
+void PrintDocidSet(DocidSet dSet)
 {
-    UncompressIndexHandler* handlers =
-        (UncompressIndexHandler*)malloc(
-            sizeof(UncompressIndexHandler) * listSize);
+    printf("DocidSet, length = %d, elements = ", dSet.len);
+    for (uint32_t i = 0; i < dSet.len; ++i) {
+        printf("%d ", dSet.docids[i]);
+    }
+    printf("\n");
+}
+
+DocidSet Intersect(PostingList* plLists, uint32_t listSize)
+{
+    PostingListHandler* handlers =
+        (PostingListHandler*)malloc(
+            sizeof(PostingListHandler) * listSize);
     for (uint32_t i = 0; i < listSize; ++i) {
-        handlers[i].postingList = indexLists[i];
+        handlers[i].postingList = plLists[i];
         handlers[i].curPos = 0;
     }
-    uint32_t targetDocid = 0;
+    uint32_t targetDocid = handlers[0].postingList.list[0].docid;
+    uint32_t targetListNo = 0;
     Vector docids = CreateVector_uint32();
     while (true) {
-        uint32_t nextTargetDocid = 0;
+        uint32_t nextTargetDocid = targetDocid;
+        uint32_t nextTargetListNo = targetListNo;
         bool found = true;
         for (uint32_t i = 0; i < listSize; ++i) {
-            uint32_t docid = Next(handlers[i], targetDocid);
+            if (i == targetListNo) {
+                continue;
+            }
+            uint32_t docid = Next(&handlers[i], targetDocid);
             if (docid == UINT32_MAX) {
                 goto quit;
             }
             if (docid > targetDocid) {
                 found = false;
-            }
-            if (docid > nextTargetDocid) {
-                nextTargetDocid = docid;
+                if (docid > nextTargetDocid) {
+                    nextTargetDocid = docid;
+                    nextTargetListNo = i;
+                }
             }
         }
         if (found) {
-            PushBack_uint32(docids, targetDocid)
+            PushBack_uint32(&docids, &targetDocid);
+            uint32_t docid = Next(&handlers[targetListNo], targetDocid);
+            if (docid == UINT32_MAX) {
+                goto quit;
+            }
+            targetDocid = docid;
         }
-        targetDocid = nextTargetDocid;
+        else {
+            targetDocid = nextTargetDocid;
+            targetListNo = nextTargetListNo;
+        }
+        // printf("targetdocid = %d, targetlistno = %d\n", targetDocid, targetListNo);
     }
 quit:
+    free(handlers);
     DocidSet docidSet = {
-        .set = docids.array,
-        .len = docis.len,
+        .docids = docids.array,
+        .len = docids.len,
     };
     return docidSet;
 }
@@ -48,16 +74,16 @@ quit:
 static uint32_t Next(PostingListHandler* handler,
                      uint32_t targetDocId)
 {
-    DocScorePair* postingList = handler.postingList.list;
-    uint32_t len = handler.postingList.len;
-    while (handler.curPos < len &&
-           postingList[handler.curPos].docid < targetDocId) {
-        handler.curPos++;
+    DocScorePair* postingList = handler->postingList.list;
+    uint32_t len = handler->postingList.len;
+    while (handler->curPos < len &&
+           postingList[handler->curPos].docid < targetDocId) {
+        handler->curPos++;
     }
-    if (handler.curPos == len) {
+    if (handler->curPos == len) {
         return UINT32_MAX;
     }
     else {
-        return handler.postingList.list[handler.curPos].docid;
+        return handler->postingList.list[handler->curPos++].docid;
     }
 }

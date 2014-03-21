@@ -29,5 +29,6 @@ typedef struct _DocidSet
 
 static uint32_t Next(PostingListHandler*, uint32_t);
 DocidSet Intersect(PostingList*, uint32_t);
+void PrintDocidSet(DocidSet);
 
 #endif

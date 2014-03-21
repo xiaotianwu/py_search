@@ -8,3 +8,4 @@ Vector.o: Vector.c Vector.h
 	$(CC) -c Vector.c $(CCFLAGS)
 VectorTest.o: VectorTest.c Vector.h
 	$(CC) -c VectorTest.c $(CCFLAGS)
+
