@@ -16,7 +16,7 @@ void PrintDocidSet(DocidSet dSet)
     printf("\n");
 }
 
-DocidSet Intersect(PostingList* plLists, uint32_t listSize)
+void Intersect(PostingList* plLists, uint32_t listSize, DocidSet* ret)
 {
     PostingListHandler* handlers =
         (PostingListHandler*)malloc(
@@ -64,11 +64,8 @@ DocidSet Intersect(PostingList* plLists, uint32_t listSize)
     }
 quit:
     free(handlers);
-    DocidSet docidSet = {
-        .docids = docids.array,
-        .len = docids.len,
-    };
-    return docidSet;
+    ret->docids = docids.array;
+    ret->len = docids.len;
 }
 
 static uint32_t Next(PostingListHandler* handler,

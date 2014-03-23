@@ -11,7 +11,8 @@ void TestCase1()
     DocScorePair d2 = {2};
     PostingList p2 = {1, &d2};
     PostingList plList[2] = {p1, p2};
-    DocidSet dSet = Intersect(plList, 2);
+    DocidSet dSet;
+    Intersect(plList, 2, &dSet);
     assert(dSet.len == 0);
     free(dSet.docids);
 }
@@ -27,7 +28,8 @@ void TestCase2()
     d2[1].docid = 3;
     PostingList p2 = {2, d2};
     PostingList plList[2] = {p1, p2};
-    DocidSet dSet = Intersect(plList, 2);
+    DocidSet dSet;
+    Intersect(plList, 2, &dSet);
     assert(dSet.len == 1);
     assert(dSet.docids[0] == 1);
     free(dSet.docids);
@@ -57,7 +59,8 @@ void TestCase3()
     d3[4].docid = 6;
     PostingList p3 = {5, d3};
     PostingList plList[3] = {p1, p2, p3};
-    DocidSet dSet = Intersect(plList, 3);
+    DocidSet dSet;
+    Intersect(plList, 3, &dSet);
     assert(dSet.len == 3);
     assert(dSet.docids[0] == 2);
     assert(dSet.docids[1] == 3);
@@ -89,7 +92,8 @@ void TestCase4()
     d3[4].docid = 19;
     PostingList p3 = {5, d3};
     PostingList plList[3] = {p1, p2, p3};
-    DocidSet dSet = Intersect(plList, 3);
+    DocidSet dSet;
+    Intersect(plList, 3, &dSet);
     assert(dSet.len == 0);
     free(dSet.docids);
 }
@@ -128,7 +132,8 @@ void TestCase5()
     d4[4].docid = 11;
     PostingList p4 = {5, d4};
     PostingList plList[4] = {p1, p2, p3, p4};
-    DocidSet dSet = Intersect(plList, 4);
+    DocidSet dSet;
+    Intersect(plList, 4, &dSet);
     assert(dSet.len == 2);
     assert(dSet.docids[0] == 9);
     assert(dSet.docids[1] == 11);
