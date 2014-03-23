@@ -69,7 +69,7 @@ class SimpleIndexWriter:
             if self._logger.isEnabledFor(logging.DEBUG):
                 self._logger.debug('write termid = ' + str(term) +
                                    ' index = ' + str(index))
-            postingList = pickle.dump(index, indexFile, 2)
+            pickle.dump(index, indexFile, 2)
             length = indexFile.tell() - offset
             indexOffsetMap[term] = (offset, length)
             offset = indexFile.tell()

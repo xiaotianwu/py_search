@@ -12,6 +12,9 @@ class DocidSet(Structure):
     _fields_ = [('docids', POINTER(c_uint)),
                 ('len', c_uint)]
 
+    def Print(self):
+        uncompressIndexLib.PrintDocidSet(self)
+
 class PostingList(Structure):
     _fields_ = [('len', c_uint),
                 ('list', POINTER(DocScorePair))]
@@ -41,6 +44,41 @@ class UncompressIndex:
             return self._indexMap[termId]
         else:
             return None
+
+class UncompressIndexWriter:
+    def __init__(self):
+        self._logger = Logger.Get('UncompressIndexWriter')
+
+    def Write(self, indexMap, indexFileName):
+        if not isinstance(indexMap, UncompressIndex):
+            raise TypeError('input must be UncompressIndex')
+        self._logger.info('write UncompressIndex file: ' + indexFileName)
+        indexFile = open(indexFileName, 'wb')
+        offset = 0
+        indexOffsetMap = {}
+
+        # write term-postinglist pair first
+        # TODO make the storage of index offset sequentially
+        for (term, postingList) in indexMap.GetIndexMap().items():
+            if self._logger.isEnabledFor(logging.DEBUG):
+                self._logger.debug('write termid = %s, postingList = %d'
+                                   % (term, postingList))
+            #pickle.dump(postingList, indexFile, 2)
+            length = indexFile.tell() - offset
+            indexOffsetMap[term] = (offset, length)
+            offset = indexFile.tell()
+        self._logger.info('index write finished')
+
+        # then offset map
+        pickle.dump(indexOffsetMap, indexFile, 2);
+        offsetMapSize = str(indexFile.tell() - offset)
+        self._logger.info('offset map write len: ' + offsetMapSize)
+        offsetMapSize = LeftPadding(offsetMapSize, UINT32_STR_LEN)
+        indexFile.write(offsetMapSize)
+
+        # TODO need checksum
+        indexFile.close()
+        self._logger.info('finish write')
 
 class UncompressIndexHandler:
     def __init__(self, postingListUpperBound = 15):

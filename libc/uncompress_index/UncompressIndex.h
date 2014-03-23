@@ -30,5 +30,6 @@ typedef struct _DocidSet
 static uint32_t Next(PostingListHandler*, uint32_t);
 void Intersect(PostingList*, uint32_t, DocidSet*);
 void PrintDocidSet(DocidSet);
+void ReleaseDocidSet(DocidSet);
 
 #endif

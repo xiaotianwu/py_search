@@ -8,6 +8,11 @@
 #include "../Vector.h"
 #include "UncompressIndex.h"
 
+void ReleaseDocidSet(DocidSet dSet)
+{
+    free(dSet.docids);
+}
+
 void PrintDocidSet(DocidSet dSet)
 {
     printf("DocidSet, length = %d, elements = ", dSet.len);
