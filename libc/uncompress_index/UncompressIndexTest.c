@@ -1,5 +1,9 @@
 #include <assert.h>
 #include <malloc.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 
 #include "UncompressIndex.h"
 #include "../Vector.h"
@@ -140,6 +144,32 @@ void TestCase5()
     free(dSet.docids);
 }
 
+void TestCase6()
+{
+    srand(time(NULL));
+    PostingList plList[8];
+    for (int caseNo = 0; caseNo < 8; ++caseNo) {
+        Vector pairs = CreateVector_DocScorePair();
+        for (unsigned int i = 0; i < 1000000; ++i) {
+            unsigned int prob = rand() % 10;
+            if (prob < 4) {
+                DocScorePair d = {i};
+                PushBack_DocScorePair(&pairs, &d);
+            }
+        }
+        plList[caseNo].list = pairs.array;
+        plList[caseNo].len = pairs.len;
+        printf("create posting list %d\n", caseNo);
+    }
+    DocidSet dSet;
+    Intersect(plList, 8, &dSet);
+    PrintDocidSet(dSet);
+    for (int caseNo = 0; caseNo < 8; ++caseNo) {
+        free(plList[caseNo].list);
+    }
+    free(dSet.docids);
+}
+
 int main()
 {
     TestCase1();
@@ -147,5 +177,6 @@ int main()
     TestCase3();
     TestCase4();
     TestCase5();
+    TestCase6();
     return 0;
 }

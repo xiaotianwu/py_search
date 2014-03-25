@@ -15,6 +15,11 @@
 #define PopBack_uint32(v) _PopBack(v, sizeof(uint32_t))
 #define At_uint32(v, i) ((uint32_t*)_At(v, sizeof(uint32_t), i))
 
+#define CreateVector_DocScorePair() _CreateVector(sizeof(DocScorePair))
+#define PushBack_DocScorePair(v, ptr) _PushBack(v, sizeof(DocScorePair), ptr)
+#define PopBack_DocScorePair(v) _PopBack(v, sizeof(DocScorePair))
+#define At_DocScorePair(v, i) ((DocScorePair*)_At(v, sizeof(DocScorePair), i))
+
 typedef struct _Vector
 {
     uint32_t len;
