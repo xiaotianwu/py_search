@@ -1,9 +1,9 @@
-#!/usr/bin/python
-
+import os
 from ctypes import *
 
-uncompressIndexPath = os.environ['PY_SEARCH_ROOT'] + '/common/uncompress_index'
-uncompressIndexLib = CDLL(uncompressIndexPath + '/UncompressIndex.so')
+rootPath = os.environ['PY_SEARCH_ROOT']
+uncompressIndexLibPath = rootPath + '/libc/uncompress_index'
+uncompressIndexLib = CDLL(uncompressIndexLibPath + '/UncompressIndex.so')
 
 class DocScorePair(Structure):
     _fields_ = [('docid', c_uint)]
@@ -54,4 +54,3 @@ class UncompressIndexHandler:
         if len(self._indexContainer) == 1:
             return self._indexContainer[0]
         uncompressIndexLib.Intersect()
-
