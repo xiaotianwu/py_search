@@ -31,5 +31,25 @@ class UncompressIndexTest(unittest.TestCase):
             dSet.docids[i] = i
         uncompressIndexLib.PrintDocidSet(dSet)
 
+    def testTrivialIntersection(self):
+        pl1 = PostingList()
+        pl1.len = 2
+        DSArrayType = DocScorePair * pl1.len
+        dsArray = DSArrayType()
+        dsArray[0] = DocScorePair(0)
+        dsArray[1] = DocScorePair(2)
+        pl1.list = dsArray
+        pl2 = PostingList()
+        pl2.len = 2
+        dsArray2 = DSArrayType()
+        dsArray2[0] = DocScorePair(1)
+        dsArray2[1] = DocScorePair(2)
+        pl2.list = dsArray2
+        handler = UncompressIndexHandler()
+        handler.Add(pl1)
+        handler.Add(pl2)
+        dSet = handler.Intersect()
+        self.assertEqual(dSet.docids[0], 2)
+
 if __name__ == '__main__':
     unittest.main()

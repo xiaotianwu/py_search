@@ -13,8 +13,8 @@ class DocidSet(Structure):
                 ('len', c_uint)]
 
 class PostingList(Structure):
-    _fields_ = [('list', POINTER(DocScorePair)),
-                ('len', c_uint)]
+    _fields_ = [('len', c_uint),
+                ('list', POINTER(DocScorePair))]
 
 class UncompressIndex:
     def __init__(self):
@@ -45,7 +45,7 @@ class UncompressIndex:
 class UncompressIndexHandler:
     def __init__(self, postingListUpperBound = 15):
         PostingListArray = PostingList * postingListUpperBound
-        self._listContainer = PostingListArray
+        self._listContainer = PostingListArray()
         self._listContainerSize = 0
         self._listUpperBound = postingListUpperBound
 
