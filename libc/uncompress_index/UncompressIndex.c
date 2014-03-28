@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "../Macro.h"
 #include "../Vector.h"
 #include "UncompressIndex.h"
 
@@ -37,18 +38,18 @@ void Intersect(PostingList* plLists, uint32_t listSize, DocidSet* ret)
                 continue;
             }
             uint32_t docid = Next(&handlers[i], targetDocid);
-            if (docid == UINT32_MAX) {
+            if (UNLIKELY(docid == UINT32_MAX)) {
                 goto quit;
             }
-            if (docid > targetDocid) {
+            if (LIKELY(docid > targetDocid)) {
                 found = false;
-                if (docid > nextTargetDocid) {
+                if (LIKELY(docid > nextTargetDocid)) {
                     nextTargetDocid = docid;
                     nextTargetListNo = i;
                 }
             }
         }
-        if (found) {
+        if (UNLIKELY(found)) {
             PushBack_uint32(&docids, &targetDocid);
             uint32_t docid = Next(&handlers[targetListNo], targetDocid);
             if (docid == UINT32_MAX) {
@@ -73,11 +74,11 @@ static uint32_t Next(PostingListHandler* handler,
 {
     DocScorePair* postingList = handler->postingList.list;
     uint32_t len = handler->postingList.len;
-    while (handler->curPos < len &&
-           postingList[handler->curPos].docid < targetDocId) {
+    while (LIKELY(handler->curPos < len &&
+           postingList[handler->curPos].docid < targetDocId)) {
         handler->curPos++;
     }
-    if (handler->curPos == len) {
+    if (UNLIKELY(handler->curPos == len)) {
         return UINT32_MAX;
     }
     else {

@@ -13,7 +13,7 @@ class DocidSet(Structure):
                 ('len', c_uint)]
 
 class PostingList(Structure):
-    _fields_ = [('docids', POINTER(DocScorePair)),
+    _fields_ = [('list', POINTER(DocScorePair)),
                 ('len', c_uint)]
 
 class UncompressIndex:

@@ -18,9 +18,9 @@ class UncompressIndexTest(unittest.TestCase):
         for i in range(0, pl.len):
             dsPair = DocScorePair(i)
             dsArray[i] = dsPair
-        pl.docids = dsArray
+        pl.list = dsArray
         for i in range(0, pl.len):
-            self.assertEqual(pl.docids[i].docid, i)
+            self.assertEqual(pl.list[i].docid, i)
 
     def testCLibFunc(self):
         dSet = DocidSet()
