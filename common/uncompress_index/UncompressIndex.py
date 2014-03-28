@@ -20,16 +20,18 @@ class UncompressIndex:
     def __init__(self):
         self._indexMap = {}
 
-    def Add(self, termId, index):
+    def Add(self, termId, postingList):
+        if not isinstance(postingList, PostingList):
+            raise Exception('unsupported index type')
+        if postingList.list == None or postingList.len <= 0:
+            return
         if termId not in self._indexMap:
-            self._indexMap[termId] = index
-        else:
-            self._indexMap[termId] |= index
+            self._indexMap[termId] = postingList
+        #else:
+            # call merge in libc
 
     def AddTermDocPair(self, termId, docid):
-        if termId not in self._indexMap:
-            self._indexMap[termId] = set()
-        self._indexMap[termId].add(docid)
+        pass
 
     def GetIndexMap(self):
         return self._indexMap
@@ -41,16 +43,24 @@ class UncompressIndex:
             return None
 
 class UncompressIndexHandler:
-    def __init__(self):
-        self._indexContainer = []
+    def __init__(self, postingListUpperBound = 15):
+        PostingListArray = PostingList * postingListUpperBound
+        self._listContainer = PostingListArray
+        self._listContainerSize = 0
+        self._listUpperBound = postingListUpperBound
 
     def Clear(self):
-        self._indexContainer = []
+        self._listContainerSize = 0
 
-    def Add(self, index):
-        self._indexContainer.append(index)
+    def Add(self, postingList):
+        if self._listContainerSize > self._listUpperBound:
+            raise Exception('too many postinglist')
+        self._listContainer[self._listContainerSize] = postingList
+        self._listContainerSize += 1
 
     def Intersect(self):
-        if len(self._indexContainer) == 1:
-            return self._indexContainer[0]
-        uncompressIndexLib.Intersect()
+        result = DocidSet()
+	uncompressIndexLib.Intersect(self._listContainer,
+                                     self._listContainerSize,
+                                     pointer(result))
+        return result

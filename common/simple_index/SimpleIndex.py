@@ -17,11 +17,11 @@ class SimpleIndex:
     def __init__(self):
         self._indexMap = {}
 
-    def Add(self, termId, index):
+    def Add(self, termId, postingList):
         if termId not in self._indexMap:
-            self._indexMap[termId] = index
+            self._indexMap[termId] = postingList
         else:
-            self._indexMap[termId] |= index
+            self._indexMap[termId] |= postingList
 
     def AddTermDocPair(self, termId, docid):
         if termId not in self._indexMap:
@@ -195,28 +195,28 @@ class SimpleIndexReader:
 
 class SimpleIndexHandler:
     def __init__(self):
-        self._indexContainer = []
+        self._postingListContainer = []
 
     def Clear(self):
-        self._indexContainer = []
+        self._postingListContainer = []
 
     def Add(self, index):
-        self._indexContainer.append(index)
+        self._postingListContainer.append(index)
 
     def Intersect(self):
-        if len(self._indexContainer) == 1:
-            return self._indexContainer[0]
-        result = self._indexContainer[0] & self._indexContainer[1]
-        for i in range(2, len(self._indexContainer)):
-            result &= self._indexContainer[i]
+        if len(self._postingListContainer) == 1:
+            return self._postingListContainer[0]
+        result = self._postingListContainer[0] & self._postingListContainer[1]
+        for i in range(2, len(self._postingListContainer)):
+            result &= self._postingListContainer[i]
         return result
 
     def Union(self):
-        if len(self._indexContainer) == 1:
-            return self._indexContainer[0]
-        result = self._indexContainer[0] | self._indexContainer[1]
-        for i in range(2, len(self._indexContainer)):
-            result |= self._indexContainer[i]
+        if len(self._postingListContainer) == 1:
+            return self._postingListContainer[0]
+        result = self._postingListContainer[0] | self._postingListContainer[1]
+        for i in range(2, len(self._postingListContainer)):
+            result |= self._postingListContainer[i]
         return result
 
 class SimpleIndexMerger:
